@@ -10,7 +10,12 @@
 .settings/
 /infra/.yml
 /backend/.env
+/backend/**/.env
 /.env
+
+/.env.example
 /backend/backend_run.log
 
 /infra/docker-compose.yml
+
+.sql

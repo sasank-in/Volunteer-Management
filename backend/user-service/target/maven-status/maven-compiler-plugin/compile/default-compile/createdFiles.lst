@@ -1,0 +1,17 @@
+com\volunteer\userservice\domain\UserAccount.class
+com\volunteer\userservice\UserServiceApplication.class
+com\volunteer\userservice\web\dto\UserResponse.class
+com\volunteer\userservice\config\SecurityConfig.class
+com\volunteer\userservice\web\dto\RegisterRequest.class
+com\volunteer\userservice\web\ApiExceptionHandler.class
+com\volunteer\userservice\config\JwtProperties.class
+com\volunteer\userservice\web\UserController.class
+com\volunteer\userservice\service\UserDetailsServiceImpl.class
+com\volunteer\userservice\repository\UserAccountRepository.class
+com\volunteer\userservice\domain\Role.class
+com\volunteer\userservice\web\dto\LoginRequest.class
+com\volunteer\userservice\web\dto\AuthResponse.class
+com\volunteer\userservice\config\JwtKeyProvider.class
+com\volunteer\userservice\web\AuthController.class
+com\volunteer\userservice\service\JwtTokenService.class
+com\volunteer\userservice\service\UserAccountService.class
