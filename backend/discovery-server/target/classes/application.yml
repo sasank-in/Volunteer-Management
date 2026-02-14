@@ -1,5 +1,8 @@
+server:
+  port: ${SERVER_PORT:8761}
+
 spring:
   application:
     name: discovery-server
   config:
-    import: "optional:configserver:http://localhost:8888,optional:file:.env[.properties]"
+    import: "optional:configserver:http://localhost:8888,optional:file:.env[.properties],optional:file:../../.env[.properties]"

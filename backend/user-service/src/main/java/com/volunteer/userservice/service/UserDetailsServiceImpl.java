@@ -2,7 +2,6 @@ package com.volunteer.userservice.service;
 
 import com.volunteer.userservice.domain.UserAccount;
 import com.volunteer.userservice.repository.UserAccountRepository;
-import java.util.stream.Collectors;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,8 +25,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     return new User(
         account.getEmail(),
         account.getPasswordHash(),
-        account.getRoles().stream()
-            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
-            .collect(Collectors.toSet()));
+        java.util.Set.of(new SimpleGrantedAuthority("ROLE_" + account.getRole().name())));
   }
 }

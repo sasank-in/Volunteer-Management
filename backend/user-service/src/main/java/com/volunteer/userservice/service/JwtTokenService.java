@@ -3,7 +3,6 @@ package com.volunteer.userservice.service;
 import com.volunteer.userservice.config.JwtProperties;
 import com.volunteer.userservice.domain.UserAccount;
 import java.time.Instant;
-import java.util.stream.Collectors;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -31,9 +30,8 @@ public class JwtTokenService {
         .subject(account.getUsername())
         .claim("userId", account.getId().toString())
         .claim("username", account.getUsername())
-        .claim("roles", account.getRoles().stream()
-            .map(Enum::name)
-            .collect(Collectors.toList()))
+        .claim("role", account.getRole().name())
+        .claim("roles", java.util.List.of(account.getRole().name()))
         .build();
 
     JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();

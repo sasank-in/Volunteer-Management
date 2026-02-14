@@ -1,22 +1,15 @@
 package com.volunteer.userservice.domain;
 
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Convert;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -35,11 +28,12 @@ public class UserAccount {
   @Column(name = "password_hash", nullable = false)
   private String passwordHash;
 
-  @ElementCollection(fetch = FetchType.EAGER)
-  @Enumerated(EnumType.STRING)
-  @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
   @Column(name = "role", nullable = false, length = 30)
-  private Set<Role> roles = new HashSet<>();
+  @Convert(converter = RoleAttributeConverter.class)
+  private Role role;
+
+  @Column(name = "phone_number", length = 30)
+  private String phoneNumber;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
@@ -91,12 +85,20 @@ public class UserAccount {
     this.passwordHash = passwordHash;
   }
 
-  public Set<Role> getRoles() {
-    return roles;
+  public Role getRole() {
+    return role;
   }
 
-  public void setRoles(Set<Role> roles) {
-    this.roles = roles;
+  public void setRole(Role role) {
+    this.role = role;
+  }
+
+  public String getPhoneNumber() {
+    return phoneNumber;
+  }
+
+  public void setPhoneNumber(String phoneNumber) {
+    this.phoneNumber = phoneNumber;
   }
 
   public Instant getCreatedAt() {

@@ -2,6 +2,7 @@ C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\voluntee
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\config\JwtProperties.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\config\SecurityConfig.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\domain\Role.java
+C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\domain\RoleAttributeConverter.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\domain\UserAccount.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\repository\UserAccountRepository.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\service\JwtTokenService.java

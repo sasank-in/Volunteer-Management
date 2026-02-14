@@ -39,7 +39,8 @@ public class AuthController {
         account.getId(),
         account.getUsername(),
         account.getEmail(),
-        account.getRoles(),
+        account.getRole(),
+        account.getPhoneNumber(),
         account.getCreatedAt()
       );
   }
@@ -57,7 +58,7 @@ public class AuthController {
 
     String accessToken = jwtTokenService.generateAccessToken(account);
     String refreshToken = jwtTokenService.generateRefreshToken(account);
-    String role = account.getRoles().stream().findFirst().map(Enum::name).orElse("VOLUNTEER");
+    String role = account.getRole() == null ? "VOLUNTEER" : account.getRole().name();
     AuthResponse.Tokens tokens = new AuthResponse.Tokens(accessToken, refreshToken);
     AuthResponse.User user = new AuthResponse.User(
         account.getUsername(),

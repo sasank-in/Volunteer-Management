@@ -1,5 +1,19 @@
+server:
+  port: ${SERVER_PORT:8080}
+
 spring:
   application:
     name: api-gateway
   config:
-    import: "optional:configserver:http://localhost:8888,optional:file:.env[.properties]"
+    import: "optional:configserver:http://localhost:8888,optional:file:.env[.properties],optional:file:../../.env[.properties]"
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**,/api/auth/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html

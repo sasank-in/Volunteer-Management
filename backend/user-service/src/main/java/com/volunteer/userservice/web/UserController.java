@@ -25,7 +25,8 @@ public class UserController {
         account.getId(),
         account.getUsername(),
         account.getEmail(),
-        account.getRoles(),
+        account.getRole(),
+        account.getPhoneNumber(),
         account.getCreatedAt());
   }
 }

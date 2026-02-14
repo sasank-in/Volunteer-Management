@@ -37,15 +37,23 @@ Run each command in a separate terminal from the repo root:
 User Service reads config from Config Server (native repo):
 `backend/config-repo/user-service.yml`
 
-Default local credentials:
+Database credentials are loaded from `.env` at the repo root.
+Services also look for a fallback `../../.env` so you can start from module folders.
+Create/update this file:
+`.env`
+
+Required values:
 ```
 DB_URL=jdbc:postgresql://localhost:5432/volunteer_user_db
 DB_USER=user_service
 DB_PASSWORD=StrongPass@123
 ```
 
-You can override by creating:
-`backend/user-service/.env`
+Note: `backend/.env` is kept in sync, but the repo-root `.env` is the one read when starting services from the repo root.
+
+Note: If Config Server is not reachable, services fall back to their local `application.yml` settings.
+Local fallbacks keep ports unique (8080/8081/8761/8888).
+Gateway also includes a local fallback route for user-service, so `/api/auth/**` and `/api/users/**` still work even if Config Server is down.
 
 JWT secret:
 - If `JWT_SECRET` is not set, the service generates a temporary secret on startup.
@@ -69,7 +77,17 @@ Register:
 ```
 curl -X POST http://localhost:8080/api/auth/register ^
   -H "Content-Type: application/json" ^
-  -d "{\"username\":\"demo\",\"email\":\"demo@example.com\",\"password\":\"StrongPass@123\"}"
+  -d "{\"username\":\"demo\",\"email\":\"demo@example.com\",\"password\":\"StrongPass@123\",\"phone_number\":\"+15551234567\"}"
+```
+
+Register Request Structure:
+```
+{
+  "username": "demo",
+  "email": "demo@example.com",
+  "password": "StrongPass@123",
+  "phone_number": "+15551234567"
+}
 ```
 
 Login:

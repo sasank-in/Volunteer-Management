@@ -1,22 +1,26 @@
 package com.volunteer.userservice.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.volunteer.userservice.domain.Role;
 import java.time.Instant;
-import java.util.Set;
 import java.util.UUID;
 
 public class UserResponse {
   private UUID id;
   private String username;
   private String email;
-  private Set<Role> roles;
+  private Role role;
+  @JsonProperty("phone_number")
+  private String phoneNumber;
   private Instant createdAt;
 
-  public UserResponse(UUID id, String username, String email, Set<Role> roles, Instant createdAt) {
+  public UserResponse(UUID id, String username, String email, Role role, String phoneNumber,
+      Instant createdAt) {
     this.id = id;
     this.username = username;
     this.email = email;
-    this.roles = roles;
+    this.role = role;
+    this.phoneNumber = phoneNumber;
     this.createdAt = createdAt;
   }
 
@@ -32,8 +36,12 @@ public class UserResponse {
     return email;
   }
 
-  public Set<Role> getRoles() {
-    return roles;
+  public Role getRole() {
+    return role;
+  }
+
+  public String getPhoneNumber() {
+    return phoneNumber;
   }
 
   public Instant getCreatedAt() {

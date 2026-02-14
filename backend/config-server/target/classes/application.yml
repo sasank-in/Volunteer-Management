@@ -5,7 +5,7 @@ spring:
   application:
     name: config-server
   config:
-    import: "optional:file:.env[.properties]"
+    import: "optional:file:.env[.properties],optional:file:../../.env[.properties]"
   profiles:
     active: native
   cloud:

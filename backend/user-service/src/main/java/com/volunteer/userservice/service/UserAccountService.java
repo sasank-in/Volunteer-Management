@@ -32,7 +32,8 @@ public class UserAccountService {
     account.setUsername(request.getUsername().trim());
     account.setEmail(request.getEmail().trim().toLowerCase());
     account.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-    account.getRoles().add(Role.VOLUNTEER);
+    account.setRole(Role.VOLUNTEER);
+    account.setPhoneNumber(request.getPhoneNumber().trim());
 
     return repository.save(account);
   }
