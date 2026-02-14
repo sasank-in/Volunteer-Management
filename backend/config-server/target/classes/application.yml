@@ -13,7 +13,7 @@ spring:
       server:
         native:
           # Config Server is started from repo root per docs; point to backend/config-repo
-          search-locations: file:./backend/config-repo
+          search-locations: file:./backend/config-repo,file:../config-repo
 
 eureka:
   client:

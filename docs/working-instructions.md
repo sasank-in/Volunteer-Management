@@ -127,6 +127,24 @@ http://localhost:8081/actuator/health
 http://localhost:8080/actuator/health
 ```
 
+## Config Server Checks
+Config is available when you see non-empty `propertySources`.
+
+User Service config:
+```
+curl http://localhost:8888/user-service/default
+```
+
+API Gateway config:
+```
+curl http://localhost:8888/api-gateway/default
+```
+
+Discovery Server config:
+```
+curl http://localhost:8888/discovery-server/default
+```
+
 ## Available APIs (Gateway)
 These are the only functional APIs currently implemented in this repo.
 
