@@ -10,27 +10,36 @@
 - User Service: `http://localhost:8081`
 - API Gateway: `http://localhost:8080`
 
+## Maven Structure
+- Each backend service has its own standalone `pom.xml`.
+- Root `pom.xml` is optional and not required for building services.
+
 ## Start Order (Required)
 Run each command in a separate terminal from the repo root:
 
 1. Config Server
 ```
-.\mvnw.cmd -pl backend/config-server spring-boot:run
+.\mvnw.cmd -f backend/config-server/pom.xml spring-boot:run
 ```
 
 2. Discovery Server
 ```
-.\mvnw.cmd -pl backend/discovery-server spring-boot:run
+.\mvnw.cmd -f backend/discovery-server/pom.xml spring-boot:run
 ```
 
 3. User Service
 ```
-.\mvnw.cmd -pl backend/user-service spring-boot:run
+.\mvnw.cmd -f backend/user-service/pom.xml spring-boot:run
 ```
 
 4. API Gateway
 ```
-.\mvnw.cmd -pl backend/api-gateway spring-boot:run
+.\mvnw.cmd -f backend/api-gateway/pom.xml spring-boot:run
+```
+
+Or start everything in separate windows:
+```
+.\start.bat
 ```
 
 ## Database Configuration
@@ -49,7 +58,8 @@ DB_USER=user_service
 DB_PASSWORD=StrongPass@123
 ```
 
-Note: `backend/.env` is kept in sync, but the repo-root `.env` is the one read when starting services from the repo root.
+Note: Use the repo-root `.env` when starting services from the repo root.
+Do not set `SERVER_PORT` in the root `.env`, or all services will try to use the same port.
 
 Note: If Config Server is not reachable, services fall back to their local `application.yml` settings.
 Local fallbacks keep ports unique (8080/8081/8761/8888).
