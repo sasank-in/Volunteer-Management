@@ -11,11 +11,12 @@
 - API Gateway: `http://localhost:8080`
 
 ## Maven Structure
-- Each backend service has its own standalone `pom.xml`.
-- Root `pom.xml` is optional and not required for building services.
+- Backend services inherit from the shared parent `backend/pom.xml` (Spring Cloud BOM).
+- Root `pom.xml` aggregates `backend` for convenience.
 
 ## Start Order (Required)
-Run each command in a separate terminal from the repo root:
+All services pull config from Config Server and register with Eureka.
+Start in order:
 
 1. Config Server
 ```
@@ -64,6 +65,7 @@ Do not set `SERVER_PORT` in the root `.env`, or all services will try to use the
 Note: If Config Server is not reachable, services fall back to their local `application.yml` settings.
 Local fallbacks keep ports unique (8080/8081/8761/8888).
 Gateway also includes a local fallback route for user-service, so `/api/auth/**` and `/api/users/**` still work even if Config Server is down.
+Config Server is now required for service startup (fail-fast enabled).
 
 JWT secret:
 - If `JWT_SECRET` is not set, the service generates a temporary secret on startup.

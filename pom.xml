@@ -11,5 +11,6 @@
   <description>Root aggregator for Volunteer Management Platform</description>
 
   <modules>
+    <module>backend</module>
   </modules>
 </project>

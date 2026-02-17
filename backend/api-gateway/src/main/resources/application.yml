@@ -5,8 +5,10 @@ spring:
   application:
     name: api-gateway
   config:
-    import: "optional:configserver:http://localhost:8888,optional:file:.env[.properties],optional:file:../../.env[.properties]"
+    import: "configserver:http://localhost:8888,optional:file:.env[.properties],optional:file:../../.env[.properties]"
   cloud:
+    config:
+      fail-fast: true
     gateway:
       discovery:
         locator:
