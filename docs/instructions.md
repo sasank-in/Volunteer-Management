@@ -138,9 +138,27 @@ curl -X GET http://localhost:8080/api/users/profile ^
   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
+Me (alias for profile):
+```
+curl -X GET http://localhost:8080/api/users/me ^
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
 Get All Users:
 ```
 curl -X GET http://localhost:8080/api/users ^
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+Get Users by Role:
+```
+curl -X GET "http://localhost:8080/api/users?role=VOLUNTEER" ^
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+Get User by ID:
+```
+curl -X GET http://localhost:8080/api/users/<USER_ID> ^
   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
@@ -156,6 +174,21 @@ Delete User:
 ```
 curl -X DELETE http://localhost:8080/api/users/<USER_ID> ^
   -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+Refresh Token:
+```
+curl -X POST http://localhost:8080/api/auth/refresh ^
+  -H "Content-Type: application/json" ^
+  -d "{\"refresh_token\":\"<REFRESH_TOKEN>\"}"
+```
+
+Change Password:
+```
+curl -X POST http://localhost:8080/api/auth/change-password ^
+  -H "Authorization: Bearer <ACCESS_TOKEN>" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"current_password\":\"OldPass@123\",\"new_password\":\"NewPass@123\"}"
 ```
 
 ## Health Checks
@@ -190,10 +223,15 @@ These are the only functional APIs currently implemented in this repo.
 Auth:
 - POST `/api/auth/register` creates a user account
 - POST `/api/auth/login` returns access and refresh tokens (email-based login only)
+- POST `/api/auth/refresh` issues new tokens using a refresh token
+- POST `/api/auth/change-password` updates the current user's password
 
 User:
 - GET `/api/users/profile` returns the current user profile, requires `Authorization: Bearer <ACCESS_TOKEN>`
+- GET `/api/users/me` alias for current user profile
 - GET `/api/users` returns all users, requires `Authorization: Bearer <ACCESS_TOKEN>`
+- GET `/api/users?role=ROLE` filters users by role
+- GET `/api/users/{id}` returns a user by id
 - PUT `/api/users/{id}` updates a user, requires `Authorization: Bearer <ACCESS_TOKEN>`
 - DELETE `/api/users/{id}` deletes a user, requires `Authorization: Bearer <ACCESS_TOKEN>`
 
@@ -201,7 +239,6 @@ System:
 - GET `/actuator/health` is available on each service port (see Health Checks above)
 
 ## Not Implemented Yet (Won't Appear in Swagger)
-- Refresh token endpoint (e.g., `POST /api/auth/refresh`)
 - Logout/invalidate token endpoint
 - Password reset / change password endpoints
 
@@ -215,7 +252,11 @@ Discovery Server:
 User Service (direct):
 - POST `http://localhost:8081/api/auth/register`
 - POST `http://localhost:8081/api/auth/login`
+- POST `http://localhost:8081/api/auth/refresh`
+- POST `http://localhost:8081/api/auth/change-password`
 - GET `http://localhost:8081/api/users/profile`
+- GET `http://localhost:8081/api/users/me`
 - GET `http://localhost:8081/api/users`
+- GET `http://localhost:8081/api/users/{id}`
 - PUT `http://localhost:8081/api/users/{id}`
 - DELETE `http://localhost:8081/api/users/{id}`

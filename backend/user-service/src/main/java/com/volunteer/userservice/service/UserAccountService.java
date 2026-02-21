@@ -50,8 +50,16 @@ public class UserAccountService {
     return repository.findByEmailIgnoreCase(email);
   }
 
+  public Optional<UserAccount> findById(UUID id) {
+    return repository.findById(id);
+  }
+
   public List<UserAccount> findAll() {
     return repository.findAll();
+  }
+
+  public List<UserAccount> findAllByRole(Role role) {
+    return repository.findByRole(role);
   }
 
   @Transactional
@@ -96,5 +104,16 @@ public class UserAccountService {
       throw new IllegalArgumentException("User not found.");
     }
     repository.deleteById(id);
+  }
+
+  @Transactional
+  public void changePassword(String principal, String currentPassword, String newPassword) {
+    UserAccount account = findByUsernameOrEmail(principal)
+        .orElseThrow(() -> new IllegalArgumentException("User not found."));
+    if (!passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
+      throw new IllegalArgumentException("Current password is incorrect.");
+    }
+    account.setPasswordHash(passwordEncoder.encode(newPassword));
+    repository.save(account);
   }
 }

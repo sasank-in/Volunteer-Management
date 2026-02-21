@@ -1,5 +1,6 @@
 package com.volunteer.userservice.web;
 
+import com.volunteer.userservice.domain.Role;
 import com.volunteer.userservice.domain.UserAccount;
 import com.volunteer.userservice.service.UserAccountService;
 import com.volunteer.userservice.web.dto.UpdateUserRequest;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -39,9 +41,17 @@ public class UserController {
         account.getCreatedAt());
   }
 
+  @GetMapping("/me")
+  public UserResponse me(Principal principal) {
+    return profile(principal);
+  }
+
   @GetMapping
-  public List<UserResponse> getAll() {
-    return userAccountService.findAll().stream()
+  public List<UserResponse> getAll(@RequestParam(name = "role", required = false) Role role) {
+    List<UserAccount> accounts = role == null
+        ? userAccountService.findAll()
+        : userAccountService.findAllByRole(role);
+    return accounts.stream()
         .map(account -> new UserResponse(
             account.getId(),
             account.getUsername(),
@@ -50,6 +60,19 @@ public class UserController {
             account.getPhoneNumber(),
             account.getCreatedAt()))
         .collect(Collectors.toList());
+  }
+
+  @GetMapping("/{id}")
+  public UserResponse getById(@PathVariable UUID id) {
+    UserAccount account = userAccountService.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("User not found."));
+    return new UserResponse(
+        account.getId(),
+        account.getUsername(),
+        account.getEmail(),
+        account.getRole(),
+        account.getPhoneNumber(),
+        account.getCreatedAt());
   }
 
   @PutMapping("/{id}")

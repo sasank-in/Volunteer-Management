@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.jwt.JwtEncodingException;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -69,6 +70,12 @@ public class ApiExceptionHandler {
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public Map<String, String> handleJwt(JwtEncodingException ex) {
     return Map.of("error", "Failed to generate access token.");
+  }
+
+  @ExceptionHandler(JwtException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  public Map<String, String> handleJwtException(JwtException ex) {
+    return Map.of("error", "Invalid or expired token.");
   }
 
   @ExceptionHandler(Exception.class)
