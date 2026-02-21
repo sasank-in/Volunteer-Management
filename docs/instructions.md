@@ -1,7 +1,8 @@
-# Working Instructions
+# Instructions
 
 ## Prerequisites
 - JDK 21
+- Maven
 - PostgreSQL 16+
 
 ## Services and Ports
@@ -43,7 +44,7 @@ Or start everything in separate windows:
 .\start.bat
 ```
 
-## Database Configuration
+## Configuration and .env
 User Service reads config from Config Server (native repo):
 `backend/config-repo/user-service.yml`
 
@@ -57,20 +58,26 @@ Required values:
 DB_URL=jdbc:postgresql://localhost:5432/volunteer_user_db
 DB_USER=user_service
 DB_PASSWORD=StrongPass@123
+JWT_SECRET=replace_with_32_plus_char_secret
 ```
 
-Note: Use the repo-root `.env` when starting services from the repo root.
-Do not set `SERVER_PORT` in the root `.env`, or all services will try to use the same port.
+Optional values:
+```
+JWT_ISSUER=volunteer-user-service
+JWT_EXPIRES_IN=3600
+JWT_REFRESH_EXPIRES_IN=604800
+EUREKA_URL=http://localhost:8761/eureka
+```
 
-Note: If Config Server is not reachable, services fall back to their local `application.yml` settings.
-Local fallbacks keep ports unique (8080/8081/8761/8888).
-Gateway also includes a local fallback route for user-service, so `/api/auth/**` and `/api/users/**` still work even if Config Server is down.
-Config Server is now required for service startup (fail-fast enabled).
+Notes:
+- Do not set `SERVER_PORT` in the root `.env`, or all services will try to use the same port.
+- Config Server is required for service startup (fail-fast enabled).
+- `JWT_SECRET` is mandatory; startup fails if missing or too short.
 
-JWT secret:
-- If `JWT_SECRET` is not set, the service generates a temporary secret on startup.
-- Tokens will become invalid after restart.
-- For production, always set a stable 32+ character secret.
+## Database Migrations
+Flyway runs automatically on User Service startup.
+- `V3__case_insensitive_unique.sql` enforces case-insensitive uniqueness for `email` and `username`.
+  If duplicates exist only by case, the migration fails with a clear error.
 
 ## Swagger UI
 Direct User Service:
@@ -131,6 +138,26 @@ curl -X GET http://localhost:8080/api/users/profile ^
   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
+Get All Users:
+```
+curl -X GET http://localhost:8080/api/users ^
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+Update User:
+```
+curl -X PUT http://localhost:8080/api/users/<USER_ID> ^
+  -H "Authorization: Bearer <ACCESS_TOKEN>" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"username\":\"newname\",\"email\":\"new@example.com\",\"phone_number\":\"+15551230000\",\"role\":\"ADMIN\"}"
+```
+
+Delete User:
+```
+curl -X DELETE http://localhost:8080/api/users/<USER_ID> ^
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
 ## Health Checks
 ```
 http://localhost:8888/actuator/health
@@ -166,9 +193,17 @@ Auth:
 
 User:
 - GET `/api/users/profile` returns the current user profile, requires `Authorization: Bearer <ACCESS_TOKEN>`
+- GET `/api/users` returns all users, requires `Authorization: Bearer <ACCESS_TOKEN>`
+- PUT `/api/users/{id}` updates a user, requires `Authorization: Bearer <ACCESS_TOKEN>`
+- DELETE `/api/users/{id}` deletes a user, requires `Authorization: Bearer <ACCESS_TOKEN>`
 
 System:
 - GET `/actuator/health` is available on each service port (see Health Checks above)
+
+## Not Implemented Yet (Won't Appear in Swagger)
+- Refresh token endpoint (e.g., `POST /api/auth/refresh`)
+- Logout/invalidate token endpoint
+- Password reset / change password endpoints
 
 ## Default Service Endpoints (Non-Gateway)
 Config Server:
@@ -181,3 +216,6 @@ User Service (direct):
 - POST `http://localhost:8081/api/auth/register`
 - POST `http://localhost:8081/api/auth/login`
 - GET `http://localhost:8081/api/users/profile`
+- GET `http://localhost:8081/api/users`
+- PUT `http://localhost:8081/api/users/{id}`
+- DELETE `http://localhost:8081/api/users/{id}`

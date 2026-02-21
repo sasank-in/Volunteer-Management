@@ -4,7 +4,10 @@ import com.volunteer.userservice.domain.Role;
 import com.volunteer.userservice.domain.UserAccount;
 import com.volunteer.userservice.repository.UserAccountRepository;
 import com.volunteer.userservice.web.dto.RegisterRequest;
+import com.volunteer.userservice.web.dto.UpdateUserRequest;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,5 +48,53 @@ public class UserAccountService {
 
   public Optional<UserAccount> findByEmail(String email) {
     return repository.findByEmailIgnoreCase(email);
+  }
+
+  public List<UserAccount> findAll() {
+    return repository.findAll();
+  }
+
+  @Transactional
+  public UserAccount updateUser(UUID id, UpdateUserRequest request) {
+    UserAccount account = repository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("User not found."));
+
+    if (request.getUsername() != null) {
+      String username = request.getUsername().trim();
+      if (!username.equalsIgnoreCase(account.getUsername())
+          && repository.existsByUsernameIgnoreCase(username)) {
+        throw new IllegalArgumentException("Username already in use.");
+      }
+      account.setUsername(username);
+    }
+
+    if (request.getEmail() != null) {
+      String email = request.getEmail().trim().toLowerCase();
+      if (!email.equalsIgnoreCase(account.getEmail())
+          && repository.existsByEmailIgnoreCase(email)) {
+        throw new IllegalArgumentException("Email already in use.");
+      }
+      account.setEmail(email);
+    }
+
+    if (request.getPhoneNumber() != null) {
+      account.setPhoneNumber(request.getPhoneNumber().trim());
+    }
+
+    if (request.getRole() != null) {
+      account.setRole(request.getRole());
+    } else if (account.getRole() == null) {
+      account.setRole(Role.VOLUNTEER);
+    }
+
+    return repository.save(account);
+  }
+
+  @Transactional
+  public void deleteUser(UUID id) {
+    if (!repository.existsById(id)) {
+      throw new IllegalArgumentException("User not found.");
+    }
+    repository.deleteById(id);
   }
 }

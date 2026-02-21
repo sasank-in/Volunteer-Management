@@ -2,10 +2,19 @@ package com.volunteer.userservice.web;
 
 import com.volunteer.userservice.domain.UserAccount;
 import com.volunteer.userservice.service.UserAccountService;
+import com.volunteer.userservice.web.dto.UpdateUserRequest;
 import com.volunteer.userservice.web.dto.UserResponse;
 import java.security.Principal;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,5 +37,35 @@ public class UserController {
         account.getRole(),
         account.getPhoneNumber(),
         account.getCreatedAt());
+  }
+
+  @GetMapping
+  public List<UserResponse> getAll() {
+    return userAccountService.findAll().stream()
+        .map(account -> new UserResponse(
+            account.getId(),
+            account.getUsername(),
+            account.getEmail(),
+            account.getRole(),
+            account.getPhoneNumber(),
+            account.getCreatedAt()))
+        .collect(Collectors.toList());
+  }
+
+  @PutMapping("/{id}")
+  public UserResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateUserRequest request) {
+    UserAccount account = userAccountService.updateUser(id, request);
+    return new UserResponse(
+        account.getId(),
+        account.getUsername(),
+        account.getEmail(),
+        account.getRole(),
+        account.getPhoneNumber(),
+        account.getCreatedAt());
+  }
+
+  @DeleteMapping("/{id}")
+  public void delete(@PathVariable UUID id) {
+    userAccountService.deleteUser(id);
   }
 }

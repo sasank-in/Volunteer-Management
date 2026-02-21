@@ -14,5 +14,6 @@ C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\voluntee
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\web\dto\AuthResponse.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\web\dto\LoginRequest.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\web\dto\RegisterRequest.java
+C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\web\dto\UpdateUserRequest.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\web\dto\UserResponse.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\web\UserController.java
