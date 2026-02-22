@@ -3,6 +3,7 @@ package com.volunteer.userservice.service;
 import com.volunteer.userservice.config.JwtProperties;
 import com.volunteer.userservice.domain.UserAccount;
 import java.time.Instant;
+import java.util.UUID;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -45,6 +46,7 @@ public class JwtTokenService {
         .issuedAt(now)
         .expiresAt(now.plusSeconds(properties.getRefreshExpiresIn()))
         .subject(account.getUsername())
+        .id(UUID.randomUUID().toString())
         .claim("userId", account.getId().toString())
         .claim("type", "refresh")
         .build();

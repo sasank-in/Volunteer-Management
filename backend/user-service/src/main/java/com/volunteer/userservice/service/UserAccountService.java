@@ -116,4 +116,12 @@ public class UserAccountService {
     account.setPasswordHash(passwordEncoder.encode(newPassword));
     repository.save(account);
   }
+
+  @Transactional
+  public void setPassword(UUID userId, String newPassword) {
+    UserAccount account = repository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("User not found."));
+    account.setPasswordHash(passwordEncoder.encode(newPassword));
+    repository.save(account);
+  }
 }

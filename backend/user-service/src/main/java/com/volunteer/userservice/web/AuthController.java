@@ -3,14 +3,18 @@ package com.volunteer.userservice.web;
 import com.volunteer.userservice.domain.UserAccount;
 import com.volunteer.userservice.service.JwtTokenService;
 import com.volunteer.userservice.service.UserAccountService;
+import com.volunteer.userservice.service.AuthTokenService;
 import com.volunteer.userservice.web.dto.AuthResponse;
 import com.volunteer.userservice.web.dto.ChangePasswordRequest;
 import com.volunteer.userservice.web.dto.LoginRequest;
+import com.volunteer.userservice.web.dto.ForgotPasswordRequest;
 import com.volunteer.userservice.web.dto.RefreshRequest;
 import com.volunteer.userservice.web.dto.RegisterRequest;
+import com.volunteer.userservice.web.dto.ResetPasswordRequest;
 import com.volunteer.userservice.web.dto.UserResponse;
 import jakarta.validation.Valid;
 import java.util.Map;
+import java.time.Instant;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,16 +31,19 @@ public class AuthController {
   private final UserAccountService userAccountService;
   private final AuthenticationManager authenticationManager;
   private final JwtTokenService jwtTokenService;
+  private final AuthTokenService authTokenService;
   private final JwtDecoder jwtDecoder;
 
   public AuthController(
       UserAccountService userAccountService,
       AuthenticationManager authenticationManager,
       JwtTokenService jwtTokenService,
+      AuthTokenService authTokenService,
       JwtDecoder jwtDecoder) {
     this.userAccountService = userAccountService;
     this.authenticationManager = authenticationManager;
     this.jwtTokenService = jwtTokenService;
+    this.authTokenService = authTokenService;
     this.jwtDecoder = jwtDecoder;
   }
 
@@ -66,6 +73,12 @@ public class AuthController {
 
     String accessToken = jwtTokenService.generateAccessToken(account);
     String refreshToken = jwtTokenService.generateRefreshToken(account);
+    Jwt refreshJwt = jwtDecoder.decode(refreshToken);
+    Instant refreshExpiresAt = refreshJwt.getExpiresAt();
+    if (refreshExpiresAt == null) {
+      throw new IllegalArgumentException("Refresh token missing expiry.");
+    }
+    authTokenService.storeRefreshToken(account, refreshToken, refreshExpiresAt);
     String role = account.getRole() == null ? "VOLUNTEER" : account.getRole().name();
     AuthResponse.Tokens tokens = new AuthResponse.Tokens(accessToken, refreshToken);
     AuthResponse.User user = new AuthResponse.User(
@@ -88,11 +101,20 @@ public class AuthController {
       throw new IllegalArgumentException("Invalid refresh token.");
     }
 
+    authTokenService.getValidRefreshToken(request.getRefreshToken());
+
     UserAccount account = userAccountService.findByUsernameOrEmail(subject)
         .orElseThrow(() -> new IllegalArgumentException("User not found."));
 
     String accessToken = jwtTokenService.generateAccessToken(account);
     String refreshToken = jwtTokenService.generateRefreshToken(account);
+    authTokenService.revokeRefreshToken(request.getRefreshToken());
+    Jwt refreshJwt = jwtDecoder.decode(refreshToken);
+    Instant refreshExpiresAt = refreshJwt.getExpiresAt();
+    if (refreshExpiresAt == null) {
+      throw new IllegalArgumentException("Refresh token missing expiry.");
+    }
+    authTokenService.storeRefreshToken(account, refreshToken, refreshExpiresAt);
     String role = account.getRole() == null ? "VOLUNTEER" : account.getRole().name();
     AuthResponse.Tokens tokens = new AuthResponse.Tokens(accessToken, refreshToken);
     AuthResponse.User user = new AuthResponse.User(
@@ -111,5 +133,30 @@ public class AuthController {
         request.getCurrentPassword(),
         request.getNewPassword());
     return Map.of("message", "Password updated.");
+  }
+
+  @PostMapping("/logout")
+  public Map<String, String> logout(@Valid @RequestBody RefreshRequest request) {
+    authTokenService.revokeRefreshToken(request.getRefreshToken());
+    return Map.of("message", "Logged out.");
+  }
+
+  @PostMapping("/forgot-password")
+  public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    UserAccount account = userAccountService.findByEmail(request.getEmail())
+        .orElseThrow(() -> new IllegalArgumentException("User not found."));
+    String resetToken = authTokenService.createPasswordResetToken(account);
+    return Map.of(
+        "message", "Password reset token created.",
+        "reset_token", resetToken);
+  }
+
+  @PostMapping("/reset-password")
+  public Map<String, String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    UserAccount account = authTokenService.getAccountForResetToken(userAccountService,
+        request.getResetToken());
+    userAccountService.setPassword(account.getId(), request.getNewPassword());
+    authTokenService.usePasswordResetToken(request.getResetToken());
+    return Map.of("message", "Password reset successful.");
   }
 }

@@ -191,6 +191,27 @@ curl -X POST http://localhost:8080/api/auth/change-password ^
   -d "{\"current_password\":\"OldPass@123\",\"new_password\":\"NewPass@123\"}"
 ```
 
+Logout (invalidate refresh token):
+```
+curl -X POST http://localhost:8080/api/auth/logout ^
+  -H "Content-Type: application/json" ^
+  -d "{\"refresh_token\":\"<REFRESH_TOKEN>\"}"
+```
+
+Forgot Password:
+```
+curl -X POST http://localhost:8080/api/auth/forgot-password ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"demo@example.com\"}"
+```
+
+Reset Password:
+```
+curl -X POST http://localhost:8080/api/auth/reset-password ^
+  -H "Content-Type: application/json" ^
+  -d "{\"reset_token\":\"<RESET_TOKEN>\",\"new_password\":\"NewPass@123\"}"
+```
+
 ## Health Checks
 ```
 http://localhost:8888/actuator/health
@@ -225,6 +246,9 @@ Auth:
 - POST `/api/auth/login` returns access and refresh tokens (email-based login only)
 - POST `/api/auth/refresh` issues new tokens using a refresh token
 - POST `/api/auth/change-password` updates the current user's password
+- POST `/api/auth/logout` invalidates a refresh token
+- POST `/api/auth/forgot-password` creates a password reset token
+- POST `/api/auth/reset-password` resets password using a reset token
 
 User:
 - GET `/api/users/profile` returns the current user profile, requires `Authorization: Bearer <ACCESS_TOKEN>`
@@ -239,8 +263,7 @@ System:
 - GET `/actuator/health` is available on each service port (see Health Checks above)
 
 ## Not Implemented Yet (Won't Appear in Swagger)
-- Logout/invalidate token endpoint
-- Password reset / change password endpoints
+- Password reset email delivery (currently returns the token in response for dev)
 
 ## Default Service Endpoints (Non-Gateway)
 Config Server:
@@ -254,6 +277,9 @@ User Service (direct):
 - POST `http://localhost:8081/api/auth/login`
 - POST `http://localhost:8081/api/auth/refresh`
 - POST `http://localhost:8081/api/auth/change-password`
+- POST `http://localhost:8081/api/auth/logout`
+- POST `http://localhost:8081/api/auth/forgot-password`
+- POST `http://localhost:8081/api/auth/reset-password`
 - GET `http://localhost:8081/api/users/profile`
 - GET `http://localhost:8081/api/users/me`
 - GET `http://localhost:8081/api/users`

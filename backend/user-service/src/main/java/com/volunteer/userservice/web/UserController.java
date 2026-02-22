@@ -63,7 +63,7 @@ public class UserController {
   }
 
   @GetMapping("/{id}")
-  public UserResponse getById(@PathVariable UUID id) {
+  public UserResponse getById(@PathVariable("id") UUID id) {
     UserAccount account = userAccountService.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("User not found."));
     return new UserResponse(
@@ -76,7 +76,8 @@ public class UserController {
   }
 
   @PutMapping("/{id}")
-  public UserResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateUserRequest request) {
+  public UserResponse update(@PathVariable("id") UUID id,
+      @Valid @RequestBody UpdateUserRequest request) {
     UserAccount account = userAccountService.updateUser(id, request);
     return new UserResponse(
         account.getId(),
@@ -88,7 +89,7 @@ public class UserController {
   }
 
   @DeleteMapping("/{id}")
-  public void delete(@PathVariable UUID id) {
+  public void delete(@PathVariable("id") UUID id) {
     userAccountService.deleteUser(id);
   }
 }
