@@ -1,21 +1,55 @@
-/backend/target/
-/frontend/node_modules/
-/frontend/dist/
-*.log
+# Maven
+target/
+**/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+backend/.mvn/timing.properties
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# IDE
 .idea/
 .vscode/
 *.iml
 .classpath
 .project
 .settings/
-/infra/.yml
-/backend/.env
-/backend/**/.env
-/.env
+*.swp
+*.swo
+*~
+.qodo/
 
-/.env.example
-/backend/backend_run.log
+# OS
+.DS_Store
+Thumbs.db
 
-/infra/docker-compose.yml
+# Logs
+*.log
+backend_run.log
 
-.sql
+# Environment
+.env
+.env.local
+.env.*.local
+backend/.env
+backend/**/.env
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Documentation (binary files)
+*.docx
+*.doc
+*.pdf
+
+# SQL dumps
+*.sql
+
+# Infrastructure
+infra/.yml
+infra/docker-compose.yml
