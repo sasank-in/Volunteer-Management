@@ -1,0 +1,26 @@
+server:
+  port: ${SERVER_PORT:8082}
+
+spring:
+  application:
+    name: event-service
+  config:
+    import: "configserver:http://localhost:8888,optional:file:.env[.properties],optional:file:../../.env[.properties]"
+  cloud:
+    config:
+      fail-fast: true
+  datasource:
+    url: ${EVENT_DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+security:
+  jwt:
+    issuer: ${JWT_ISSUER:volunteer-user-service}
+    secret: ${JWT_SECRET:}

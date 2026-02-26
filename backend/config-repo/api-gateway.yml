@@ -12,7 +12,15 @@ spring:
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/api/users/**,/api/auth/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html
+            - Path=/api/users/**,/api/auth/**
+        - id: event-service
+          uri: lb://event-service
+          predicates:
+            - Path=/api/events/**,/api/participations/**,/api/feedbacks/**
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
 
 eureka:
   client:

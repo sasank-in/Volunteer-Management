@@ -41,15 +41,11 @@ backend/**/.env
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/.next/
+frontend/build/
 
-# Documentation (binary files)
-*.docx
-*.doc
-*.pdf
-
-# SQL dumps
-*.sql
-
-# Infrastructure
-infra/.yml
-infra/docker-compose.yml
+# Temporary files
+*.tmp
+*.bak
+test-*.bat
+test-*.sql
