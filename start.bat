@@ -9,11 +9,11 @@ cd backend
 
 echo [1/6] Config Server (Port 8888)...
 start "Config Server" cmd /k ".\mvnw.cmd -pl config-server spring-boot:run"
-timeout /t 15 /nobreak >nul
+timeout /t 10 /nobreak >nul
 
 echo [2/6] Discovery Server (Port 8761)...
 start "Discovery Server" cmd /k ".\mvnw.cmd -pl discovery-server spring-boot:run"
-timeout /t 15 /nobreak >nul
+timeout /t 10 /nobreak >nul
 
 echo [3/6] User Service (Port 8081)...
 start "User Service" cmd /k ".\mvnw.cmd -pl user-service spring-boot:run"

@@ -10,6 +10,24 @@ spring:
     config:
       fail-fast: true
     gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:5173"
+              - "http://127.0.0.1:3000"
+              - "http://127.0.0.1:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: '*'
+            allow-credentials: true
+            max-age: 3600
       discovery:
         locator:
           enabled: true
@@ -19,3 +37,33 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/api/users/**,/api/auth/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html
+      cache:
+    type: simple
+
+resilience4j:
+  ratelimiter:
+    instances:
+      auth-service:
+        register-health-indicator: true
+        limit-for-period: 50
+        limit-refresh-period: 1m
+        timeout-duration: 100ms
+      event-service:
+        register-health-indicator: true
+        limit-for-period: 100
+        limit-refresh-period: 1m
+        timeout-duration: 100ms
+      api-gateway:
+        register-health-indicator: true
+        limit-for-period: 500
+        limit-refresh-period: 1m
+        timeout-duration: 100ms
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized

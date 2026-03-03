@@ -6,6 +6,8 @@ import com.volunteer.eventservice.repository.EventRepository;
 import com.volunteer.eventservice.repository.FeedbackRepository;
 import com.volunteer.eventservice.web.dto.CreateEventRequest;
 import com.volunteer.eventservice.web.dto.UpdateEventRequest;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -23,6 +25,7 @@ public class EventService {
   }
 
   @Transactional
+  @CacheEvict(value = "events", allEntries = true)
   public Event createEvent(CreateEventRequest request, UUID organizerId, String organizerName) {
     Event event = new Event();
     event.setTitle(request.getTitle());
@@ -36,24 +39,29 @@ public class EventService {
     return eventRepository.save(event);
   }
 
+  @Cacheable(value = "events", key = "#id")
   public Event getEventById(UUID id) {
     return eventRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Event not found"));
   }
 
+  @Cacheable(value = "events", key = "'all'")
   public List<Event> getAllEvents() {
     return eventRepository.findAll();
   }
 
+  @Cacheable(value = "events", key = "'upcoming'")
   public List<Event> getUpcomingEvents() {
     return eventRepository.findByStatusAndEventDateAfter(EventStatus.OPEN, LocalDateTime.now());
   }
 
+  @Cacheable(value = "events", key = "#organizerId")
   public List<Event> getEventsByOrganizer(UUID organizerId) {
     return eventRepository.findByOrganizerId(organizerId);
   }
 
   @Transactional
+  @CacheEvict(value = "events", allEntries = true)
   public Event updateEvent(UUID id, UpdateEventRequest request, UUID organizerId) {
     Event event = getEventById(id);
     
@@ -85,6 +93,7 @@ public class EventService {
   }
 
   @Transactional
+  @CacheEvict(value = "events", allEntries = true)
   public void deleteEvent(UUID id, UUID organizerId) {
     Event event = getEventById(id);
     
@@ -96,6 +105,7 @@ public class EventService {
   }
 
   @Transactional
+  @CacheEvict(value = "events", allEntries = true)
   public void incrementRegisteredVolunteers(UUID eventId) {
     Event event = getEventById(eventId);
     event.setRegisteredVolunteers(event.getRegisteredVolunteers() + 1);
@@ -104,6 +114,7 @@ public class EventService {
   }
 
   @Transactional
+  @CacheEvict(value = "events", allEntries = true)
   public void decrementRegisteredVolunteers(UUID eventId) {
     Event event = getEventById(eventId);
     if (event.getRegisteredVolunteers() > 0) {
@@ -121,6 +132,7 @@ public class EventService {
     }
   }
 
+  @Cacheable(value = "events", key = "'rating_' + #eventId")
   public Double getAverageRating(UUID eventId) {
     return feedbackRepository.getAverageRatingForEvent(eventId);
   }
