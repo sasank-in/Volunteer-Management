@@ -40,7 +40,13 @@ public class SecurityConfig {
 
   @Bean
   public JwtDecoder jwtDecoder() {
+    if (jwtSecret == null || jwtSecret.isBlank()) {
+      throw new IllegalStateException("JWT_SECRET is required.");
+    }
     byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
+    if (keyBytes.length < 32) {
+      throw new IllegalStateException("JWT_SECRET too short. Must decode to at least 32 bytes.");
+    }
     SecretKey key = new SecretKeySpec(keyBytes, "HmacSHA256");
     return NimbusJwtDecoder.withSecretKey(key).build();
   }

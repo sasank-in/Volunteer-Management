@@ -18,11 +18,19 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@hooks/useAuth';
 import apiService from '@services/api';
 import MainLayout from '@components/Layout';
+import type { UserAccount } from '@/types';
+import { useNavigate } from 'react-router-dom';
 
 const ProfilePage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [formData, setFormData] = useState({
     username: user?.username || '',
@@ -38,13 +46,47 @@ const ProfilePage: React.FC = () => {
 
   // Update profile mutation
   const updateMutation = useMutation({
-    mutationFn: (data) => apiService.updateProfile(data),
+    mutationFn: (data: Partial<UserAccount>) => apiService.updateProfile(data),
     onSuccess: () => {
       setSuccessMessage('Profile updated successfully!');
       setIsEditing(false);
       setTimeout(() => setSuccessMessage(''), 3000);
     },
   });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: () => apiService.changePassword(oldPassword, newPassword),
+    onSuccess: () => {
+      setPasswordSuccess('Password updated successfully!');
+      setPasswordError('');
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPasswordSuccess(''), 3000);
+    },
+    onError: (err: any) => {
+      setPasswordError(err.response?.data?.error || 'Failed to update password. Please try again.');
+    },
+  });
+
+  const handleChangePassword = () => {
+    setPasswordError('');
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      setPasswordError('Please fill in all password fields.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match.');
+      return;
+    }
+
+    changePasswordMutation.mutate();
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -283,46 +325,80 @@ const ProfilePage: React.FC = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
                 <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                  Change Password
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Update your password to keep your account secure
-                </Typography>
-                <Box sx={{ mt: 2 }}>
-                  <Button variant="outlined" size="small">
-                    Change Password
-                  </Button>
-                </Box>
-              </Box>
-
-              <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
                   Notification Settings
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Control how you receive notifications
                 </Typography>
                 <Box sx={{ mt: 2 }}>
-                  <Button variant="outlined" size="small">
+                  <Button variant="outlined" size="small" onClick={() => navigate('/notifications')}>
                     Manage Notifications
                   </Button>
                 </Box>
               </Box>
-
-              <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                  Privacy & Security
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Review your privacy settings and security options
-                </Typography>
-                <Box sx={{ mt: 2 }}>
-                  <Button variant="outlined" size="small">
-                    Privacy Settings
-                  </Button>
-                </Box>
-              </Box>
             </Box>
+          </CardContent>
+        </Card>
+
+        <Card id="change-password">
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+              Change Password
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              For your security, choose a strong password.
+            </Typography>
+
+            {passwordSuccess && (
+              <Alert severity="success" sx={{ mb: 2 }} onClose={() => setPasswordSuccess('')}>
+                {passwordSuccess}
+              </Alert>
+            )}
+            {passwordError && (
+              <Alert severity="error" sx={{ mb: 2 }} onClose={() => setPasswordError('')}>
+                {passwordError}
+              </Alert>
+            )}
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Current Password"
+                  type="password"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="New Password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  helperText="At least 8 characters"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Confirm New Password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Button
+                  variant="contained"
+                  onClick={handleChangePassword}
+                  disabled={changePasswordMutation.isPending}
+                >
+                  {changePasswordMutation.isPending ? 'Saving...' : 'Update Password'}
+                </Button>
+              </Grid>
+            </Grid>
           </CardContent>
         </Card>
       </Container>

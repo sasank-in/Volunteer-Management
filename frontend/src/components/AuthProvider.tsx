@@ -11,7 +11,7 @@ interface AuthProviderProps {
  * This ensures auth state is set up BEFORE any routes are rendered
  */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const { user, isAuthenticated, setUser, setAuthenticated, setLoading, setInitialized } = useAuthStore();
+  const { user, setUser, setAuthenticated, setLoading, setInitialized } = useAuthStore();
 
   useEffect(() => {
     const initializeAuth = async () => {

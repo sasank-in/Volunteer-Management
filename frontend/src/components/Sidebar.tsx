@@ -18,6 +18,7 @@ import {
   Event as EventIcon,
   Add as AddIcon,
   Person as PersonIcon,
+  Notifications as NotificationsIcon,
   ExpandLess,
   ExpandMore,
 } from '@mui/icons-material';
@@ -55,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     {
       label: 'Dashboard',
       icon: <DashboardIcon />,
-      path: '/',
+      path: '/dashboard',
     },
     {
       label: 'Events',
@@ -71,6 +72,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       label: 'Profile',
       icon: <PersonIcon />,
       path: '/profile',
+    },
+    {
+      label: 'Notifications',
+      icon: <NotificationsIcon />,
+      path: '/notifications',
     },
   ];
 

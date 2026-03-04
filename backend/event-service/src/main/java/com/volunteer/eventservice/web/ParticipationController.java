@@ -21,7 +21,7 @@ public class ParticipationController {
   }
 
   @PostMapping("/events/{eventId}/register")
-  public ParticipationResponse registerForEvent(@PathVariable UUID eventId, Authentication authentication) {
+  public ParticipationResponse registerForEvent(@PathVariable("eventId") UUID eventId, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     UUID volunteerId = UUID.fromString(jwt.getClaimAsString("userId"));
     String volunteerName = jwt.getClaimAsString("username");
@@ -32,7 +32,7 @@ public class ParticipationController {
   }
 
   @PostMapping("/events/{eventId}/cancel")
-  public Map<String, String> cancelParticipation(@PathVariable UUID eventId, Authentication authentication) {
+  public Map<String, String> cancelParticipation(@PathVariable("eventId") UUID eventId, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     UUID volunteerId = UUID.fromString(jwt.getClaimAsString("userId"));
     participationService.cancelParticipation(eventId, volunteerId);
@@ -40,7 +40,7 @@ public class ParticipationController {
   }
 
   @GetMapping("/events/{eventId}")
-  public List<ParticipationResponse> getEventParticipations(@PathVariable UUID eventId) {
+  public List<ParticipationResponse> getEventParticipations(@PathVariable("eventId") UUID eventId) {
     return participationService.getEventParticipations(eventId).stream()
         .map(this::toResponse)
         .collect(Collectors.toList());
@@ -55,15 +55,33 @@ public class ParticipationController {
         .collect(Collectors.toList());
   }
 
+  @GetMapping("/me")
+  public List<ParticipationResponse> getMeParticipations(Authentication authentication) {
+    return getMyParticipations(authentication);
+  }
+
+  @GetMapping("/events/{eventId}/participants")
+  public List<ParticipationResponse> getEventParticipants(@PathVariable("eventId") UUID eventId) {
+    return getEventParticipations(eventId);
+  }
+
+  @PutMapping("/{participationId}/mark-attended")
+  public ParticipationResponse markAttended(@PathVariable("participationId") UUID participationId) {
+    Participation participation = participationService.markAttended(participationId);
+    return toResponse(participation);
+  }
+
   @PutMapping("/events/{eventId}/volunteers/{volunteerId}/attendance")
-  public Map<String, String> markAttendance(@PathVariable UUID eventId, @PathVariable UUID volunteerId,
+  public Map<String, String> markAttendance(@PathVariable("eventId") UUID eventId,
+      @PathVariable("volunteerId") UUID volunteerId,
       @RequestParam boolean attended) {
     participationService.markAttendance(eventId, volunteerId, attended);
     return Map.of("message", "Attendance marked successfully");
   }
 
   @PutMapping("/events/{eventId}/volunteers/{volunteerId}/role")
-  public Map<String, String> updateRole(@PathVariable UUID eventId, @PathVariable UUID volunteerId,
+  public Map<String, String> updateRole(@PathVariable("eventId") UUID eventId,
+      @PathVariable("volunteerId") UUID volunteerId,
       @RequestParam String role) {
     participationService.updateRole(eventId, volunteerId, role);
     return Map.of("message", "Role updated successfully");

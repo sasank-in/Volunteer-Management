@@ -1,5 +1,6 @@
 package com.volunteer.userservice.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -7,11 +8,13 @@ import jakarta.validation.constraints.Size;
 public class ChangePasswordRequest {
   @NotBlank
   @JsonProperty("current_password")
+  @JsonAlias({"currentPassword", "oldPassword"})
   private String currentPassword;
 
   @NotBlank
   @Size(min = 8, max = 120)
   @JsonProperty("new_password")
+  @JsonAlias({"newPassword"})
   private String newPassword;
 
   @JsonProperty("current_password")

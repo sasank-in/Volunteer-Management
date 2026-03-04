@@ -1,6 +1,7 @@
 package com.volunteer.userservice.service;
 
 import com.volunteer.userservice.config.JwtProperties;
+import com.volunteer.userservice.domain.Role;
 import com.volunteer.userservice.domain.UserAccount;
 import java.time.Instant;
 import java.util.UUID;
@@ -23,6 +24,7 @@ public class JwtTokenService {
 
   public String generateAccessToken(UserAccount account) {
     Instant now = Instant.now();
+    Role role = account.getRole() != null ? account.getRole() : Role.VOLUNTEER;
     JwtClaimsSet claims = JwtClaimsSet.builder()
         .issuer(properties.getIssuer())
         .issuedAt(now)
@@ -31,8 +33,8 @@ public class JwtTokenService {
         .subject(account.getUsername())
         .claim("userId", account.getId().toString())
         .claim("username", account.getUsername())
-        .claim("role", account.getRole().name())
-        .claim("roles", java.util.List.of(account.getRole().name()))
+        .claim("role", role.name())
+        .claim("roles", java.util.List.of(role.name()))
         .build();
 
     JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();

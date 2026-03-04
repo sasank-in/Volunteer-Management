@@ -28,7 +28,7 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
-  phoneNumber?: string;
+  phoneNumber: string;
 }
 
 // Event types
@@ -74,7 +74,7 @@ export interface Participation {
   registeredAt: string;
 }
 
-export type ParticipationStatus = 'REGISTERED' | 'ATTENDED' | 'CANCELLED';
+export type ParticipationStatus = 'REGISTERED' | 'ATTENDED' | 'CANCELLED' | 'NO_SHOW';
 
 // Feedback/Rating types
 export interface Feedback {
@@ -95,14 +95,26 @@ export interface CreateFeedbackRequest {
 // Notification types
 export interface Notification {
   id: string;
-  userId: string;
-  message: string;
   type: NotificationType;
+  subject: string;
+  message: string;
+  eventId?: string;
+  status: NotificationStatus;
+  createdAt: string;
+  sentAt?: string;
   readAt?: string;
-  sentAt: string;
 }
 
-export type NotificationType = 'EMAIL' | 'IN_APP';
+export type NotificationType =
+  | 'EVENT_CREATED'
+  | 'EVENT_UPDATED'
+  | 'EVENT_CANCELLED'
+  | 'VOLUNTEER_REGISTERED'
+  | 'VOLUNTEER_CANCELLED'
+  | 'EVENT_REMINDER'
+  | 'EVENT_COMPLETED';
+
+export type NotificationStatus = 'PENDING' | 'SENT' | 'FAILED' | 'READ';
 
 // API Response types
 export interface ApiResponse<T> {

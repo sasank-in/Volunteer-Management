@@ -13,6 +13,8 @@ import com.volunteer.userservice.web.dto.RegisterRequest;
 import com.volunteer.userservice.web.dto.ResetPasswordRequest;
 import com.volunteer.userservice.web.dto.UserResponse;
 import jakarta.validation.Valid;
+import com.volunteer.userservice.domain.Role;
+import java.util.HashMap;
 import java.util.Map;
 import java.time.Instant;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -56,7 +58,8 @@ public class AuthController {
         account.getEmail(),
         account.getRole(),
         account.getPhoneNumber(),
-        account.getCreatedAt()
+        account.getCreatedAt(),
+        account.getUpdatedAt()
       );
   }
 
@@ -71,6 +74,8 @@ public class AuthController {
     UserAccount account = userAccountService.findByEmail(principal)
         .orElseThrow(() -> new IllegalArgumentException("User not found."));
 
+    Role safeRole = account.getRole() != null ? account.getRole() : Role.VOLUNTEER;
+
     String accessToken = jwtTokenService.generateAccessToken(account);
     String refreshToken = jwtTokenService.generateRefreshToken(account);
     Jwt refreshJwt = jwtDecoder.decode(refreshToken);
@@ -79,13 +84,15 @@ public class AuthController {
       throw new IllegalArgumentException("Refresh token missing expiry.");
     }
     authTokenService.storeRefreshToken(account, refreshToken, refreshExpiresAt);
-    String role = account.getRole() == null ? "VOLUNTEER" : account.getRole().name();
     AuthResponse.Tokens tokens = new AuthResponse.Tokens(accessToken, refreshToken);
     AuthResponse.User user = new AuthResponse.User(
         account.getUsername(),
         account.getEmail(),
-        role,
-        account.getId().toString());
+        safeRole,
+        account.getId().toString(),
+        account.getPhoneNumber(),
+        account.getCreatedAt(),
+        account.getUpdatedAt());
     return new AuthResponse(tokens, user);
   }
 
@@ -106,6 +113,8 @@ public class AuthController {
     UserAccount account = userAccountService.findByUsernameOrEmail(subject)
         .orElseThrow(() -> new IllegalArgumentException("User not found."));
 
+    Role safeRole = account.getRole() != null ? account.getRole() : Role.VOLUNTEER;
+
     String accessToken = jwtTokenService.generateAccessToken(account);
     String refreshToken = jwtTokenService.generateRefreshToken(account);
     authTokenService.revokeRefreshToken(request.getRefreshToken());
@@ -115,13 +124,15 @@ public class AuthController {
       throw new IllegalArgumentException("Refresh token missing expiry.");
     }
     authTokenService.storeRefreshToken(account, refreshToken, refreshExpiresAt);
-    String role = account.getRole() == null ? "VOLUNTEER" : account.getRole().name();
     AuthResponse.Tokens tokens = new AuthResponse.Tokens(accessToken, refreshToken);
     AuthResponse.User user = new AuthResponse.User(
         account.getUsername(),
         account.getEmail(),
-        role,
-        account.getId().toString());
+        safeRole,
+        account.getId().toString(),
+        account.getPhoneNumber(),
+        account.getCreatedAt(),
+        account.getUpdatedAt());
     return new AuthResponse(tokens, user);
   }
 
@@ -146,9 +157,10 @@ public class AuthController {
     UserAccount account = userAccountService.findByEmail(request.getEmail())
         .orElseThrow(() -> new IllegalArgumentException("User not found."));
     String resetToken = authTokenService.createPasswordResetToken(account);
-    return Map.of(
-        "message", "Password reset token created.",
-        "reset_token", resetToken);
+    Map<String, String> response = new HashMap<>();
+    response.put("message", "Password reset token created.");
+    response.put("resetToken", resetToken);
+    return response;
   }
 
   @PostMapping("/reset-password")

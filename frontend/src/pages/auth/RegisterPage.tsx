@@ -20,7 +20,7 @@ import {
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import apiService from '@services/api';
 import { useAuthStore } from '@store/index';
 import { RegisterRequest } from '../../types';
@@ -47,7 +47,7 @@ const RegisterPage: React.FC = () => {
   useEffect(() => {
     if (user && isAuthenticated) {
       console.log('[RegisterPage] User authenticated, navigating to home');
-      navigate('/');
+      navigate('/events');
     }
   }, [user, isAuthenticated, navigate]);
 
@@ -57,7 +57,7 @@ const RegisterPage: React.FC = () => {
   };
 
   const validateForm = (): boolean => {
-    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword || !formData.phoneNumber) {
       setError('Please fill in all required fields');
       return false;
     }
@@ -75,6 +75,11 @@ const RegisterPage: React.FC = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError('Please enter a valid email address');
+      return false;
+    }
+
+    if (formData.phoneNumber.length < 7) {
+      setError('Please enter a valid phone number');
       return false;
     }
 
@@ -96,7 +101,7 @@ const RegisterPage: React.FC = () => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        phoneNumber: formData.phoneNumber || undefined,
+        phoneNumber: formData.phoneNumber,
       };
 
       // Register first
@@ -196,14 +201,15 @@ const RegisterPage: React.FC = () => {
               }}
             />
 
-            {/* Phone Input (Optional) */}
+            {/* Phone Input */}
             <TextField
               fullWidth
-              label="Phone Number (Optional)"
+              label="Phone Number"
               name="phoneNumber"
               value={formData.phoneNumber}
               onChange={handleChange}
               disabled={loading}
+              required
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -295,7 +301,8 @@ const RegisterPage: React.FC = () => {
               <Typography variant="body2" color="text.secondary">
                 Already have an account?{' '}
                 <Link
-                  href="/login"
+                  component={RouterLink}
+                  to="/login"
                   underline="hover"
                   sx={{
                     color: 'primary.main',

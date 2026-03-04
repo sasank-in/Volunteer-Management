@@ -9,7 +9,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,7 +22,8 @@ public class FeedbackController {
   }
 
   @PostMapping("/events/{eventId}")
-  public FeedbackResponse submitFeedback(@PathVariable UUID eventId, @Valid @RequestBody FeedbackRequest request,
+  public FeedbackResponse submitFeedback(@PathVariable("eventId") UUID eventId,
+      @Valid @RequestBody FeedbackRequest request,
       Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     UUID volunteerId = UUID.fromString(jwt.getClaimAsString("userId"));
@@ -33,17 +33,23 @@ public class FeedbackController {
     return toResponse(feedback);
   }
 
+  @PostMapping("/events/{eventId}/submit")
+  public FeedbackResponse submitFeedbackAlias(@PathVariable("eventId") UUID eventId,
+      @Valid @RequestBody FeedbackRequest request, Authentication authentication) {
+    return submitFeedback(eventId, request, authentication);
+  }
+
   @GetMapping("/events/{eventId}")
-  public List<FeedbackResponse> getEventFeedbacks(@PathVariable UUID eventId) {
+  public List<FeedbackResponse> getEventFeedbacks(@PathVariable("eventId") UUID eventId) {
     return feedbackService.getEventFeedbacks(eventId).stream()
         .map(this::toResponse)
         .collect(Collectors.toList());
   }
 
   @GetMapping("/events/{eventId}/average-rating")
-  public Map<String, Object> getAverageRating(@PathVariable UUID eventId) {
+  public Double getAverageRating(@PathVariable("eventId") UUID eventId) {
     Double avgRating = feedbackService.getAverageRating(eventId);
-    return Map.of("eventId", eventId, "averageRating", avgRating != null ? avgRating : 0.0);
+    return avgRating != null ? avgRating : 0.0;
   }
 
   private FeedbackResponse toResponse(Feedback f) {

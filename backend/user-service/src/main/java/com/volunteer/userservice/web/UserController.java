@@ -38,12 +38,30 @@ public class UserController {
         account.getEmail(),
         account.getRole(),
         account.getPhoneNumber(),
-        account.getCreatedAt());
+        account.getCreatedAt(),
+        account.getUpdatedAt());
   }
 
   @GetMapping("/me")
   public UserResponse me(Principal principal) {
     return profile(principal);
+  }
+
+  @PutMapping("/me")
+  public UserResponse updateMe(Principal principal, @Valid @RequestBody UpdateUserRequest request) {
+    UserAccount current = userAccountService.findByUsernameOrEmail(principal.getName())
+        .orElseThrow(() -> new IllegalArgumentException("User not found."));
+    // Prevent self-service privilege escalation.
+    request.setRole(null);
+    UserAccount account = userAccountService.updateUser(current.getId(), request);
+    return new UserResponse(
+        account.getId(),
+        account.getUsername(),
+        account.getEmail(),
+        account.getRole(),
+        account.getPhoneNumber(),
+        account.getCreatedAt(),
+        account.getUpdatedAt());
   }
 
   @GetMapping
@@ -58,7 +76,8 @@ public class UserController {
             account.getEmail(),
             account.getRole(),
             account.getPhoneNumber(),
-            account.getCreatedAt()))
+            account.getCreatedAt(),
+            account.getUpdatedAt()))
         .collect(Collectors.toList());
   }
 
@@ -72,7 +91,8 @@ public class UserController {
         account.getEmail(),
         account.getRole(),
         account.getPhoneNumber(),
-        account.getCreatedAt());
+        account.getCreatedAt(),
+        account.getUpdatedAt());
   }
 
   @PutMapping("/{id}")
@@ -85,7 +105,8 @@ public class UserController {
         account.getEmail(),
         account.getRole(),
         account.getPhoneNumber(),
-        account.getCreatedAt());
+        account.getCreatedAt(),
+        account.getUpdatedAt());
   }
 
   @DeleteMapping("/{id}")

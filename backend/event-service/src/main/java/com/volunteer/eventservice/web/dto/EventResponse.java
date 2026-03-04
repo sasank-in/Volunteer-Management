@@ -18,10 +18,11 @@ public class EventResponse {
   private EventStatus status;
   private Double averageRating;
   private Instant createdAt;
+  private Instant updatedAt;
 
   public EventResponse(UUID id, String title, String description, String location,
       LocalDateTime eventDate, Integer requiredVolunteers, Integer registeredVolunteers,
-      UUID organizerId, String organizerName, EventStatus status, Instant createdAt) {
+      UUID organizerId, String organizerName, EventStatus status, Instant createdAt, Instant updatedAt) {
     this.id = id;
     this.title = title;
     this.description = description;
@@ -33,6 +34,7 @@ public class EventResponse {
     this.organizerName = organizerName;
     this.status = status;
     this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
   }
 
   // Getters and Setters
@@ -130,5 +132,13 @@ public class EventResponse {
 
   public void setCreatedAt(Instant createdAt) {
     this.createdAt = createdAt;
+  }
+
+  public Instant getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(Instant updatedAt) {
+    this.updatedAt = updatedAt;
   }
 }

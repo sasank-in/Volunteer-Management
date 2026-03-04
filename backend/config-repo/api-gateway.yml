@@ -10,15 +10,15 @@ spring:
           lower-case-service-id: true
       routes:
         - id: user-service
-          uri: lb://user-service
+          uri: lb://USER-SERVICE
           predicates:
             - Path=/api/users/**,/api/auth/**
         - id: event-service
-          uri: lb://event-service
+          uri: lb://EVENT-SERVICE
           predicates:
             - Path=/api/events/**,/api/participations/**,/api/feedbacks/**
         - id: notification-service
-          uri: lb://notification-service
+          uri: lb://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/notifications/**
 
@@ -26,6 +26,9 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
 
 management:
   endpoints:

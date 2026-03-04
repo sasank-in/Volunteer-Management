@@ -45,7 +45,7 @@ public class NotificationController {
   }
 
   @PostMapping("/{id}/send")
-  public Map<String, String> sendNotification(@PathVariable UUID id) {
+  public Map<String, String> sendNotification(@PathVariable("id") UUID id) {
     notificationService.sendNotification(id);
     return Map.of("message", "Notification sent successfully");
   }
@@ -54,6 +54,11 @@ public class NotificationController {
   public Map<String, String> sendPendingNotifications() {
     notificationService.sendPendingNotifications();
     return Map.of("message", "Pending notifications processed");
+  }
+
+  @GetMapping
+  public List<NotificationResponse> getNotifications(Authentication authentication) {
+    return getMyNotifications(authentication);
   }
 
   @GetMapping("/my-notifications")
@@ -83,11 +88,19 @@ public class NotificationController {
   }
 
   @PutMapping("/{id}/read")
-  public Map<String, String> markAsRead(@PathVariable UUID id, Authentication authentication) {
+  public Map<String, String> markAsRead(@PathVariable("id") UUID id, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     UUID userId = UUID.fromString(jwt.getClaimAsString("userId"));
     notificationService.markAsRead(id, userId);
     return Map.of("message", "Notification marked as read");
+  }
+
+  @PutMapping("/read-all")
+  public Map<String, String> markAllAsRead(Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    UUID userId = UUID.fromString(jwt.getClaimAsString("userId"));
+    notificationService.markAllAsRead(userId);
+    return Map.of("message", "All notifications marked as read");
   }
 
   private NotificationResponse toResponse(Notification n) {

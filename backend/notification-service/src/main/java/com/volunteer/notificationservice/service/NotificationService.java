@@ -99,4 +99,15 @@ public class NotificationService {
   public long getUnreadCount(UUID userId) {
     return notificationRepository.countByRecipientIdAndStatus(userId, NotificationStatus.SENT);
   }
+
+  @Transactional
+  public void markAllAsRead(UUID userId) {
+    List<Notification> unread = notificationRepository.findByRecipientIdAndStatus(userId, NotificationStatus.SENT);
+    Instant now = Instant.now();
+    for (Notification notification : unread) {
+      notification.setStatus(NotificationStatus.READ);
+      notification.setReadAt(now);
+    }
+    notificationRepository.saveAll(unread);
+  }
 }

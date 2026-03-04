@@ -6,25 +6,26 @@ import {
   Typography,
   Menu,
   MenuItem,
-  Badge,
   Box,
   Avatar,
   Divider,
+  Button,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Notifications as NotificationsIcon,
   Brightness4 as Brightness4Icon,
   Brightness7 as Brightness7Icon,
   Logout as LogoutIcon,
   Person as PersonIcon,
-  Settings as SettingsIcon,
+  Notifications as NotificationsIcon,
+  Home as HomeIcon,
 } from '@mui/icons-material';
 import { useUIStore } from '@store/index';
 import { useAuth } from '@hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { NotificationCenter } from './NotificationCenter';
 
 interface AppBarProps {
   onMenuClick: () => void;
@@ -34,9 +35,9 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const { theme: uiTheme, toggleTheme } = useUIStore();
-  const notificationCount = useUIStore((state) => state.notificationCount);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -56,6 +57,11 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
   const handleProfileClick = () => {
     handleMenuClose();
     navigate('/profile');
+  };
+
+  const handleNotificationsClick = () => {
+    handleMenuClose();
+    navigate('/notifications');
   };
 
   const getAvatarColor = (role?: string): string => {
@@ -132,6 +138,26 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
             Volunteer Platform
           </Typography>
 
+          {user && location.pathname !== '/' && (
+            <Button
+              startIcon={<HomeIcon />}
+              onClick={() => navigate('/')}
+              sx={{
+                ml: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                color: 'text.primary',
+                '&:hover': {
+                  bgcolor: 'action.hover',
+                },
+              }}
+              size="small"
+              variant="text"
+            >
+              Home
+            </Button>
+          )}
+
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <IconButton
               color="inherit"
@@ -149,22 +175,7 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
             </IconButton>
 
             {!isMobile && (
-              <IconButton
-                color="inherit"
-                sx={{
-                  color: 'text.primary',
-                  borderRadius: '8px',
-                  '&:hover': {
-                    bgcolor: 'action.hover',
-                  },
-                }}
-                onClick={() => navigate('/notifications')}
-                aria-label="notifications"
-              >
-                <Badge badgeContent={notificationCount} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
+              <NotificationCenter />
             )}
 
             <IconButton
@@ -248,6 +259,7 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
           <Typography variant="body2">Profile</Typography>
         </MenuItem>
         <MenuItem
+          onClick={handleNotificationsClick}
           sx={{
             borderRadius: '8px',
             mx: 0.5,
@@ -257,8 +269,8 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
             },
           }}
         >
-          <SettingsIcon sx={{ mr: 1.5 }} fontSize="small" />
-          <Typography variant="body2">Settings</Typography>
+          <NotificationsIcon sx={{ mr: 1.5 }} fontSize="small" />
+          <Typography variant="body2">Notifications</Typography>
         </MenuItem>
         <Divider />
         <MenuItem

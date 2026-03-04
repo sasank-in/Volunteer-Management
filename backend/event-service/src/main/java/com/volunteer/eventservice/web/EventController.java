@@ -41,7 +41,7 @@ public class EventController {
   }
 
   @GetMapping("/{id}")
-  public EventResponse getEvent(@PathVariable UUID id) {
+  public EventResponse getEvent(@PathVariable("id") UUID id) {
     Event event = eventService.getEventById(id);
     return toResponse(event);
   }
@@ -55,7 +55,7 @@ public class EventController {
   }
 
   @PutMapping("/{id}")
-  public EventResponse updateEvent(@PathVariable UUID id, @Valid @RequestBody UpdateEventRequest request,
+  public EventResponse updateEvent(@PathVariable("id") UUID id, @Valid @RequestBody UpdateEventRequest request,
       Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     UUID organizerId = UUID.fromString(jwt.getClaimAsString("userId"));
@@ -64,7 +64,7 @@ public class EventController {
   }
 
   @DeleteMapping("/{id}")
-  public void deleteEvent(@PathVariable UUID id, Authentication authentication) {
+  public void deleteEvent(@PathVariable("id") UUID id, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     UUID organizerId = UUID.fromString(jwt.getClaimAsString("userId"));
     eventService.deleteEvent(id, organizerId);
@@ -82,7 +82,8 @@ public class EventController {
         event.getOrganizerId(),
         event.getOrganizerName(),
         event.getStatus(),
-        event.getCreatedAt()
+        event.getCreatedAt(),
+        event.getUpdatedAt()
     );
     Double avgRating = eventService.getAverageRating(event.getId());
     response.setAverageRating(avgRating);

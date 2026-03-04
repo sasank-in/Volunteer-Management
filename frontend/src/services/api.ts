@@ -104,6 +104,7 @@ class ApiService {
     }
     const response = await this.api.post<AuthResponse>('/auth/refresh', { refreshToken });
     localStorage.setItem('accessToken', response.data.tokens.accessToken);
+    localStorage.setItem('refreshToken', response.data.tokens.refreshToken);
     return response.data;
   }
 

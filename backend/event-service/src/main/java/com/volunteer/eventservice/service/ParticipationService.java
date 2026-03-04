@@ -86,6 +86,14 @@ public class ParticipationService {
   }
 
   @Transactional
+  public Participation markAttended(UUID participationId) {
+    Participation participation = participationRepository.findById(participationId)
+        .orElseThrow(() -> new IllegalArgumentException("Participation not found"));
+    participation.setStatus(ParticipationStatus.ATTENDED);
+    return participationRepository.save(participation);
+  }
+
+  @Transactional
   public void updateRole(UUID eventId, UUID volunteerId, String role) {
     Participation participation = participationRepository.findByEventIdAndVolunteerId(eventId, volunteerId)
         .orElseThrow(() -> new IllegalArgumentException("Participation not found"));

@@ -39,7 +39,8 @@ Content-Type: application/json
   "email": "john@example.com",
   "role": "VOLUNTEER",
   "phoneNumber": "+1234567890",
-  "createdAt": "2024-01-01T00:00:00Z"
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z"
 }
 ```
 
@@ -62,10 +63,13 @@ Content-Type: application/json
     "refreshToken": "eyJhbGc..."
   },
   "user": {
+    "id": "uuid",
     "username": "john_doe",
     "email": "john@example.com",
     "role": "VOLUNTEER",
-    "userId": "uuid"
+    "phoneNumber": "+1234567890",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
   }
 }
 ```
@@ -83,7 +87,6 @@ Content-Type: application/json
 ### Logout
 ```http
 POST /api/auth/logout
-Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -263,10 +266,7 @@ Authorization: Bearer <token>
 
 **Response:**
 ```json
-{
-  "eventId": "uuid",
-  "averageRating": 4.5
-}
+4.5
 ```
 
 ---
