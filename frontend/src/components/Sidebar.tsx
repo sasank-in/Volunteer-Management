@@ -65,7 +65,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       submenuId: 'events',
       children: [
         { label: 'Browse Events', path: '/events' },
-        ...(user?.role === 'ORGANIZER' ? [{ label: 'Create Event', path: '/events/create' }] : []),
+        ...((user?.role === 'ORGANIZER' || user?.role === 'ADMIN')
+          ? [{ label: 'Create Event', path: '/events/create' }]
+          : []),
       ],
     },
     {

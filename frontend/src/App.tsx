@@ -112,7 +112,7 @@ const App: React.FC = () => {
                 <Route
                   path="/events/create"
                   element={
-                    <ProtectedRoute requiredRole="ORGANIZER">
+                    <ProtectedRoute requiredRoles={['ORGANIZER', 'ADMIN']}>
                       <CreateEventPage />
                     </ProtectedRoute>
                   }

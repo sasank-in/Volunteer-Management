@@ -136,6 +136,20 @@ class ApiService {
     return response.data;
   }
 
+  async updateUserRole(userId: string, role: string): Promise<UserAccount> {
+    const response = await this.api.put<UserAccount>(`/users/${userId}/role`, { role });
+    return response.data;
+  }
+
+  async updateUserStatus(userId: string, status: 'ACTIVE' | 'INACTIVE'): Promise<UserAccount> {
+    const response = await this.api.put<UserAccount>(`/users/${userId}/status`, { status });
+    return response.data;
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    await this.api.delete(`/users/${userId}`);
+  }
+
   // Event endpoints
   async getAllEvents(upcoming?: boolean): Promise<Event[]> {
     const params = upcoming !== undefined ? { upcoming } : {};

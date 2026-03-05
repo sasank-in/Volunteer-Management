@@ -7,9 +7,10 @@ import { Box, CircularProgress } from '@mui/material';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: UserRole;
+  requiredRoles?: UserRole[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole, requiredRoles }) => {
   const { isAuthenticated, isLoading, user } = useAuth();
 
   console.log('[ProtectedRoute] Render - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated, 'user:', !!user);
@@ -38,6 +39,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
   // Check if user has required role
   if (requiredRole && user.role !== requiredRole) {
     console.log('[ProtectedRoute] User role', user.role, 'does not match required role', requiredRole);
+    return <Navigate to="/" replace />;
+  }
+
+  if (requiredRoles && !requiredRoles.includes(user.role)) {
+    console.log('[ProtectedRoute] User role', user.role, 'not in required roles', requiredRoles);
     return <Navigate to="/" replace />;
   }
 

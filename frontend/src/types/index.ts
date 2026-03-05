@@ -5,6 +5,8 @@ export interface UserAccount {
   email: string;
   phoneNumber?: string;
   role: UserRole;
+  status?: 'ACTIVE' | 'INACTIVE';
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }

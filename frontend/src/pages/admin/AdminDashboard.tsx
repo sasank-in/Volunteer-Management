@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Grid, Paper, Typography, Card, CardContent, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Tab, Tabs } from '@mui/material';
+import { Box, Container, Grid, Paper, Typography, Card, CardContent, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Tab, Tabs, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { People, Event, CheckCircle, TrendingUp } from '@mui/icons-material';
 import apiService from '@services/api';
 import type { UserAccount, Event as EventType } from '../../types';
@@ -10,6 +10,8 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [events, setEvents] = useState<EventType[]>([]);
   const [tabValue, setTabValue] = useState(0);
+  const [actionUserId, setActionUserId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<UserAccount | null>(null);
 
   useEffect(() => {
     loadData();
@@ -28,6 +30,50 @@ const AdminDashboard = () => {
     }
   };
 
+  const isActiveUser = (user: UserAccount) => {
+    if (user.status) return user.status === 'ACTIVE';
+    if (typeof user.isActive === 'boolean') return user.isActive;
+    return true;
+  };
+
+  const handleRoleChange = async (userId: string, role: string) => {
+    try {
+      setActionUserId(userId);
+      await apiService.updateUserRole(userId, role);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to update role:', error);
+    } finally {
+      setActionUserId(null);
+    }
+  };
+
+  const handleStatusToggle = async (userId: string, nextStatus: 'ACTIVE' | 'INACTIVE') => {
+    try {
+      setActionUserId(userId);
+      await apiService.updateUserStatus(userId, nextStatus);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to update status:', error);
+    } finally {
+      setActionUserId(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      setActionUserId(deleteTarget.id);
+      await apiService.deleteUser(deleteTarget.id);
+      await loadData();
+      setDeleteTarget(null);
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+    } finally {
+      setActionUserId(null);
+    }
+  };
+
   const stats = [
     { title: 'Total Users', value: users.length, icon: People, color: '#3b82f6' },
     { title: 'Total Events', value: events.length, icon: Event, color: '#10b981' },
@@ -42,7 +88,11 @@ const AdminDashboard = () => {
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Admin Dashboard</Typography>
           <Typography variant="body2" color="text.secondary">Manage users and events</Typography>
         </Box>
-        <Button variant="outlined" onClick={() => navigate('/events')}>Events</Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button variant="outlined" onClick={() => setTabValue(0)}>Manage Users</Button>
+          <Button variant="outlined" onClick={() => setTabValue(1)}>View Events</Button>
+          <Button variant="contained" onClick={() => navigate('/events/create')}>Create Event</Button>
+        </Box>
       </Box>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -80,6 +130,8 @@ const AdminDashboard = () => {
                   <TableCell>Username</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Role</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="right">Actions</TableCell>
                   <TableCell>Joined</TableCell>
                 </TableRow>
               </TableHead>
@@ -88,7 +140,48 @@ const AdminDashboard = () => {
                   <TableRow key={u.id}>
                     <TableCell>{u.username}</TableCell>
                     <TableCell>{u.email}</TableCell>
-                    <TableCell><Chip label={u.role} size="small" /></TableCell>
+                    <TableCell>
+                      <Select
+                        size="small"
+                        value={u.role}
+                        onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                        disabled={actionUserId === u.id}
+                      >
+                        <MenuItem value="VOLUNTEER">VOLUNTEER</MenuItem>
+                        <MenuItem value="ORGANIZER">ORGANIZER</MenuItem>
+                        <MenuItem value="ADMIN">ADMIN</MenuItem>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={isActiveUser(u) ? 'ACTIVE' : 'INACTIVE'}
+                        size="small"
+                        color={isActiveUser(u) ? 'success' : 'default'}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={() =>
+                            handleStatusToggle(u.id, isActiveUser(u) ? 'INACTIVE' : 'ACTIVE')
+                          }
+                          disabled={actionUserId === u.id}
+                        >
+                          {isActiveUser(u) ? 'Deactivate' : 'Activate'}
+                        </Button>
+                        <Button
+                          size="small"
+                          color="error"
+                          variant="outlined"
+                          onClick={() => setDeleteTarget(u)}
+                          disabled={actionUserId === u.id}
+                        >
+                          Delete
+                        </Button>
+                      </Box>
+                    </TableCell>
                     <TableCell>{new Date(u.createdAt).toLocaleDateString()}</TableCell>
                   </TableRow>
                 ))}
@@ -122,6 +215,21 @@ const AdminDashboard = () => {
           </TableContainer>
         )}
       </Paper>
+
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
+        <DialogTitle>Delete User</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            Are you sure you want to delete {deleteTarget?.username}? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteTarget(null)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={handleDelete} disabled={!!actionUserId}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
