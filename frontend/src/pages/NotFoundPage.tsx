@@ -41,8 +41,8 @@ const NotFoundPage: React.FC = () => {
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button variant="contained" size="large" onClick={() => navigate('/')}>
-              Back to Home
+            <Button variant="contained" size="large" onClick={() => navigate('/landing')}>
+              Back to Landing
             </Button>
             <Button variant="outlined" size="large" onClick={() => navigate('/events')}>
               Browse Events

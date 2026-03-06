@@ -11,7 +11,7 @@ const SimpleLoginPage: React.FC = () => {
     e.preventDefault();
     console.log('Login attempt:', { email, password });
     // For now, just navigate back
-    navigate('/');
+    navigate('/events');
   };
 
   return (
@@ -55,10 +55,10 @@ const SimpleLoginPage: React.FC = () => {
               <Button
                 fullWidth
                 variant="outlined"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/landing')}
                 sx={{ fontWeight: 700 }}
               >
-                Back to Home
+                Back to Landing
               </Button>
             </Stack>
           </Box>

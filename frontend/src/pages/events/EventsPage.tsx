@@ -13,6 +13,7 @@ import {
   LinearProgress,
   InputAdornment,
   Paper,
+  Stack,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -178,6 +179,16 @@ const EventsPage: React.FC = () => {
   return (
     <MainLayout>
       <Container maxWidth="lg">
+        {/* Workspace Context */}
+        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="caption" color="text.secondary">
+            Workspace / Events
+          </Typography>
+          <Button size="small" variant="text" onClick={() => navigate('/overview')}>
+            Overview
+          </Button>
+        </Box>
+
         {/* Header */}
         <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
@@ -188,16 +199,21 @@ const EventsPage: React.FC = () => {
               Find and join volunteer opportunities in your community
             </Typography>
           </Box>
-          {user?.role === 'ORGANIZER' && (
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => navigate('/events/create')}
-              size="large"
-            >
-              Create Event
+          <Stack direction="row" spacing={1}>
+            <Button variant="outlined" onClick={() => navigate('/overview')}>
+              Overview
             </Button>
-          )}
+            {(user?.role === 'ORGANIZER' || user?.role === 'ADMIN') && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => navigate('/events/create')}
+                size="large"
+              >
+                Create Event
+              </Button>
+            )}
+          </Stack>
         </Box>
 
         {/* Filters */}

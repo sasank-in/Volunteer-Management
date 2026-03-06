@@ -130,7 +130,7 @@ const LoginPage: React.FC = () => {
           {/* Back Button */}
           <Button
             startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/landing')}
             sx={{
               mb: 3,
               textTransform: 'none',

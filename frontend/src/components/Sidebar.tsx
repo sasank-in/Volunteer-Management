@@ -54,9 +54,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   const menuItems = [
     {
-      label: 'Dashboard',
+      label: 'Overview',
       icon: <DashboardIcon />,
-      path: '/dashboard',
+      path: '/overview',
     },
     {
       label: 'Events',

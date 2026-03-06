@@ -36,10 +36,7 @@ const OrganizerDashboard = () => {
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Organizer Dashboard</Typography>
           <Typography variant="body2" color="text.secondary">Manage your events</Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button variant="outlined" onClick={() => navigate('/events')}>Events</Button>
-          <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/events/create')}>Create Event</Button>
-        </Box>
+        <Button variant="outlined" onClick={() => navigate('/events')}>Go to Events</Button>
       </Box>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>

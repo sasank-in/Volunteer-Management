@@ -128,20 +128,20 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
                 transform: 'scale(1.02)',
               },
             }}
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/events')}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') navigate('/');
+              if (e.key === 'Enter') navigate('/events');
             }}
           >
             Volunteer Platform
           </Typography>
 
-          {user && location.pathname !== '/' && (
+          {user && location.pathname !== '/events' && (
             <Button
               startIcon={<HomeIcon />}
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/events')}
               sx={{
                 ml: 2,
                 textTransform: 'none',
@@ -154,7 +154,7 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
               size="small"
               variant="text"
             >
-              Home
+              Events
             </Button>
           )}
 

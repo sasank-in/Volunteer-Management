@@ -10,7 +10,7 @@ const SimpleDashboard: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/landing');
   };
 
   return (
@@ -95,7 +95,7 @@ const SimpleDashboard: React.FC = () => {
                       <Button fullWidth variant="contained" sx={{ fontWeight: 700 }} onClick={() => navigate('/events')}>
                         Browse Events
                       </Button>
-                      <Button fullWidth variant="outlined" sx={{ fontWeight: 700 }} onClick={() => navigate('/dashboard')}>
+                      <Button fullWidth variant="outlined" sx={{ fontWeight: 700 }} onClick={() => navigate('/overview')}>
                         My Participations
                       </Button>
                     </>
@@ -105,14 +105,14 @@ const SimpleDashboard: React.FC = () => {
                       <Button fullWidth variant="contained" sx={{ fontWeight: 700 }} onClick={() => navigate('/events/create')}>
                         Create Event
                       </Button>
-                      <Button fullWidth variant="outlined" sx={{ fontWeight: 700 }} onClick={() => navigate('/dashboard')}>
+                      <Button fullWidth variant="outlined" sx={{ fontWeight: 700 }} onClick={() => navigate('/overview')}>
                         My Events
                       </Button>
                     </>
                   )}
                   {user?.role === 'ADMIN' && (
                     <>
-                      <Button fullWidth variant="contained" sx={{ fontWeight: 700 }} onClick={() => navigate('/dashboard')}>
+                      <Button fullWidth variant="contained" sx={{ fontWeight: 700 }} onClick={() => navigate('/overview')}>
                         Manage Users
                       </Button>
                       <Button fullWidth variant="outlined" sx={{ fontWeight: 700 }} onClick={() => navigate('/events')}>

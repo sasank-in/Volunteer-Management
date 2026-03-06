@@ -39,12 +39,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole,
   // Check if user has required role
   if (requiredRole && user.role !== requiredRole) {
     console.log('[ProtectedRoute] User role', user.role, 'does not match required role', requiredRole);
-    return <Navigate to="/" replace />;
+    return <Navigate to="/events" replace />;
   }
 
   if (requiredRoles && !requiredRoles.includes(user.role)) {
     console.log('[ProtectedRoute] User role', user.role, 'not in required roles', requiredRoles);
-    return <Navigate to="/" replace />;
+    return <Navigate to="/events" replace />;
   }
 
   console.log('[ProtectedRoute] All checks passed, showing children');

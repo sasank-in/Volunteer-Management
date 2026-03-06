@@ -88,11 +88,7 @@ const AdminDashboard = () => {
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Admin Dashboard</Typography>
           <Typography variant="body2" color="text.secondary">Manage users and events</Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button variant="outlined" onClick={() => setTabValue(0)}>Manage Users</Button>
-          <Button variant="outlined" onClick={() => setTabValue(1)}>View Events</Button>
-          <Button variant="contained" onClick={() => navigate('/events/create')}>Create Event</Button>
-        </Box>
+        <Button variant="outlined" onClick={() => navigate('/events')}>Go to Events</Button>
       </Box>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>

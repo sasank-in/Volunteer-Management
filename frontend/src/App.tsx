@@ -40,8 +40,8 @@ const queryClient = new QueryClient({
   },
 });
 
-// Home Route Component - Routes to landing or dashboard based on auth
-const HomeRoute: React.FC = () => {
+// Overview Route Component - Routes to role dashboards based on auth
+const OverviewRoute: React.FC = () => {
   const { isAuthenticated, isLoading, isInitialized, user } = useAuthStore();
   
   if (!isInitialized || isLoading) {
@@ -61,6 +61,25 @@ const HomeRoute: React.FC = () => {
   return <LandingPage />;
 };
 
+// Entry Route Component - Public landing or workspace redirect
+const EntryRoute: React.FC = () => {
+  const { isAuthenticated, isLoading, isInitialized } = useAuthStore();
+
+  if (!isInitialized || isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh" bgcolor="background.default">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/events" replace />;
+  }
+
+  return <LandingPage />;
+};
+
 const App: React.FC = () => {
   const theme = useUIStore((state) => state.theme);
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
@@ -74,9 +93,9 @@ const App: React.FC = () => {
           <AuthProvider>
             <BrowserRouter>
               <Routes>
-                {/* Home Route - Landing */}
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/home" element={<Navigate to="/" replace />} />
+                {/* Entry + Landing */}
+                <Route path="/" element={<EntryRoute />} />
+                <Route path="/landing" element={<LandingPage />} />
 
                 {/* Public Routes */}
                 <Route path="/login" element={<LoginPage />} />
@@ -86,13 +105,14 @@ const App: React.FC = () => {
 
                 {/* Protected Routes */}
                 <Route
-                  path="/dashboard"
+                  path="/overview"
                   element={
                     <ProtectedRoute>
-                      <HomeRoute />
+                      <OverviewRoute />
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/dashboard" element={<Navigate to="/overview" replace />} />
                 <Route
                   path="/events"
                   element={
