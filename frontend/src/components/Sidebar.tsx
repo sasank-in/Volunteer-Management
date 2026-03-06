@@ -14,7 +14,6 @@ import {
   useTheme,
 } from '@mui/material';
 import {
-  Dashboard as DashboardIcon,
   Event as EventIcon,
   Add as AddIcon,
   Person as PersonIcon,
@@ -53,11 +52,6 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   };
 
   const menuItems = [
-    {
-      label: 'Overview',
-      icon: <DashboardIcon />,
-      path: '/overview',
-    },
     {
       label: 'Events',
       icon: <EventIcon />,

@@ -12,9 +12,6 @@ import { Toast } from '@components/Toast';
 
 // Pages
 import LandingPage from '@pages/LandingPage';
-import AdminDashboard from '@pages/admin/AdminDashboard';
-import OrganizerDashboard from '@pages/organizer/OrganizerDashboard';
-import VolunteerDashboard from '@pages/volunteer/VolunteerDashboard';
 import LoginPage from '@pages/auth/LoginPage';
 import RegisterPage from '@pages/auth/RegisterPage';
 import ForgotPasswordPage from '@pages/auth/ForgotPasswordPage';
@@ -39,27 +36,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-// Overview Route Component - Routes to role dashboards based on auth
-const OverviewRoute: React.FC = () => {
-  const { isAuthenticated, isLoading, isInitialized, user } = useAuthStore();
-  
-  if (!isInitialized || isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh" bgcolor="background.default">
-        <CircularProgress />
-      </Box>
-    );
-  }
-  
-  if (isAuthenticated && user) {
-    if (user.role === 'ADMIN') return <AdminDashboard />;
-    if (user.role === 'ORGANIZER') return <OrganizerDashboard />;
-    if (user.role === 'VOLUNTEER') return <VolunteerDashboard />;
-  }
-  
-  return <LandingPage />;
-};
 
 // Entry Route Component - Public landing or workspace redirect
 const EntryRoute: React.FC = () => {
@@ -104,15 +80,8 @@ const App: React.FC = () => {
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
 
                 {/* Protected Routes */}
-                <Route
-                  path="/overview"
-                  element={
-                    <ProtectedRoute>
-                      <OverviewRoute />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/dashboard" element={<Navigate to="/overview" replace />} />
+                <Route path="/overview" element={<Navigate to="/events" replace />} />
+                <Route path="/dashboard" element={<Navigate to="/events" replace />} />
                 <Route
                   path="/events"
                   element={

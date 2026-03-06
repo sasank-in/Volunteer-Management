@@ -35,7 +35,7 @@ const LandingPage: React.FC = () => {
     : { label: 'Get Started', path: '/register' };
 
   const secondaryCta = isAuthenticated
-    ? { label: 'Overview', path: '/overview' }
+    ? { label: 'Browse Events', path: '/events' }
     : { label: 'Sign In', path: '/login' };
 
   const features = [
