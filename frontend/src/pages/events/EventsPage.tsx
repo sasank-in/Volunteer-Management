@@ -4,6 +4,7 @@ import {
   Container,
   Grid,
   Card,
+  CardActionArea,
   CardContent,
   Typography,
   TextField,
@@ -174,121 +175,125 @@ const EventsPage: React.FC = () => {
     });
   };
 
+  const truncateText = (value: string | undefined | null, maxLength: number) => {
+    if (!value) return '';
+    if (value.length <= maxLength) return value;
+    const trimmed = value.slice(0, maxLength);
+    const lastSpace = trimmed.lastIndexOf(' ');
+    return `${trimmed.slice(0, Math.max(0, lastSpace))}...`;
+  };
+
   const EventCard: React.FC<{ event: Event }> = ({ event }) => (
     <Card
       sx={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        cursor: 'pointer',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: 6,
         },
       }}
-      onClick={() => navigate(`/events/${event.id}`)}
     >
-      {/* Header with Status and Rating */}
-      <Box
-        sx={{
-          px: 2,
-          pt: 2,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-        }}
-      >
-        <Chip
-          label={getEventStatusLabel(event.status)}
-          sx={{
-            bgcolor: getEventStatusColor(event.status),
-            color: 'white',
-            fontWeight: 600,
-          }}
-          size="small"
-        />
-        {event.averageRating && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <StarIcon sx={{ fontSize: '1rem', color: '#f59e0b' }} />
-            <Typography variant="caption" sx={{ fontWeight: 600 }}>
-              {event.averageRating.toFixed(1)}
-            </Typography>
-          </Box>
-        )}
-      </Box>
-
-      {/* Content */}
-      <CardContent sx={{ flex: 1 }}>
-        {/* Title and Organizer */}
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-          {event.title}
-        </Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-          by {event.organizerName}
-        </Typography>
-
-        {/* Description */}
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {event.description.substring(0, 100)}...
-        </Typography>
-
-        {/* Location and Date */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <LocationOnIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
-          <Typography variant="caption" color="text.secondary">
-            {event.location}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <DateRangeIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
-          <Typography variant="caption" color="text.secondary">
-            {formatDate(event.eventDate)}
-          </Typography>
-        </Box>
-      </CardContent>
-
-      {/* Volunteer Progress */}
-      <Box sx={{ px: 2, pb: 2 }}>
+      <CardActionArea onClick={() => navigate(`/events/${event.id}`)} sx={{ height: '100%' }}>
+        {/* Header with Status and Rating */}
         <Box
           sx={{
+            px: 2,
+            pt: 2,
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 1,
+            alignItems: 'flex-start',
           }}
         >
-          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-            Volunteers
-          </Typography>
-          <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.main' }}>
-            {event.registeredVolunteers}/{event.requiredVolunteers}
-          </Typography>
-        </Box>
-        <LinearProgress
-          variant="determinate"
-          value={calculateProgressPercentage(
-            event.registeredVolunteers,
-            event.requiredVolunteers
+          <Chip
+            label={getEventStatusLabel(event.status)}
+            sx={{
+              bgcolor: getEventStatusColor(event.status),
+              color: 'white',
+              fontWeight: 600,
+            }}
+            size="small"
+          />
+          {event.averageRating && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <StarIcon sx={{ fontSize: '1rem', color: '#f59e0b' }} />
+              <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                {event.averageRating.toFixed(1)}
+              </Typography>
+            </Box>
           )}
-          sx={{ borderRadius: 1 }}
-        />
-      </Box>
+        </Box>
 
-      {/* Action Button */}
-      <Box sx={{ px: 2, pb: 2 }}>
-        <Button
-          fullWidth
-          variant={event.status === 'OPEN' ? 'contained' : 'outlined'}
-          disabled={event.status !== 'OPEN'}
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/events/${event.id}`);
-          }}
-        >
-          {event.status === 'OPEN' ? 'View Details' : getEventStatusLabel(event.status)}
-        </Button>
-      </Box>
+        {/* Content */}
+        <CardContent sx={{ flex: 1 }}>
+          {/* Title and Organizer */}
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+            {event.title}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            by {event.organizerName}
+          </Typography>
+
+          {/* Description */}
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {truncateText(event.description, 110)}
+          </Typography>
+
+          {/* Location and Date */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <LocationOnIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
+            <Typography variant="caption" color="text.secondary">
+              {event.location}
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <DateRangeIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
+            <Typography variant="caption" color="text.secondary">
+              {formatDate(event.eventDate)}
+            </Typography>
+          </Box>
+        </CardContent>
+
+        {/* Volunteer Progress */}
+        <Box sx={{ px: 2, pb: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 1,
+            }}
+          >
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+              Volunteers
+            </Typography>
+            <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.main' }}>
+              {event.registeredVolunteers}/{event.requiredVolunteers}
+            </Typography>
+          </Box>
+          <LinearProgress
+            variant="determinate"
+            value={calculateProgressPercentage(
+              event.registeredVolunteers,
+              event.requiredVolunteers
+            )}
+            sx={{ borderRadius: 1 }}
+          />
+        </Box>
+
+        {/* Action Button */}
+        <Box sx={{ px: 2, pb: 2 }}>
+          <Button
+            fullWidth
+            variant={event.status === 'OPEN' ? 'contained' : 'outlined'}
+            disabled={event.status !== 'OPEN'}
+          >
+            {event.status === 'OPEN' ? 'View Details' : getEventStatusLabel(event.status)}
+          </Button>
+        </Box>
+      </CardActionArea>
     </Card>
   );
 

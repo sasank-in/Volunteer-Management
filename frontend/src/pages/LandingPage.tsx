@@ -11,6 +11,7 @@ import {
   Divider,
   Chip,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
   ArrowForward,
   CheckCircle,
@@ -27,6 +28,7 @@ import { useAuthStore } from '@store/index';
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
+  const theme = useTheme();
 
   const primaryCta = isAuthenticated
     ? user?.role === 'ORGANIZER'
@@ -80,7 +82,14 @@ const LandingPage: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ bgcolor: '#0b0f1a', color: 'white', position: 'relative', overflow: 'hidden' }}>
+    <Box
+      sx={{
+        bgcolor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
       {/* Background accents */}
       <Box
         sx={{
@@ -90,7 +99,7 @@ const LandingPage: React.FC = () => {
           width: 320,
           height: 320,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(68,132,255,0.45), transparent 70%)',
+          background: `radial-gradient(circle, ${alpha(theme.palette.primary.main, 0.45)}, transparent 70%)`,
           filter: 'blur(10px)',
           zIndex: 0,
         }}
@@ -103,23 +112,29 @@ const LandingPage: React.FC = () => {
           width: 420,
           height: 420,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(0,204,153,0.35), transparent 70%)',
+          background: `radial-gradient(circle, ${alpha(theme.palette.success.main, 0.35)}, transparent 70%)`,
           filter: 'blur(6px)',
           zIndex: 0,
         }}
       />
 
       {/* Nav */}
-      <Box sx={{ position: 'relative', zIndex: 1, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+      <Box
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+          borderBottom: `1px solid ${alpha(theme.palette.text.primary, 0.08)}`,
+        }}
+      >
         <Container maxWidth="lg">
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
             <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
               Volunteer Management
             </Typography>
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <Button
                 onClick={() => navigate(secondaryCta.path)}
-                sx={{ color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}
+                sx={{ color: alpha(theme.palette.text.primary, 0.75), fontWeight: 600 }}
               >
                 {secondaryCta.label}
               </Button>
@@ -127,10 +142,10 @@ const LandingPage: React.FC = () => {
                 variant="contained"
                 onClick={() => navigate(primaryCta.path)}
                 sx={{
-                  bgcolor: '#4f8cff',
-                  color: '#0b0f1a',
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
                   fontWeight: 700,
-                  '&:hover': { bgcolor: '#3c7af0' },
+                  '&:hover': { bgcolor: theme.palette.primary.dark },
                 }}
               >
                 {primaryCta.label}
@@ -148,8 +163,8 @@ const LandingPage: React.FC = () => {
               <Chip
                 label="Community Operations Suite"
                 sx={{
-                  bgcolor: 'rgba(79,140,255,0.15)',
-                  color: '#9bbcff',
+                  bgcolor: alpha(theme.palette.primary.main, 0.15),
+                  color: theme.palette.primary.light,
                   fontWeight: 600,
                   mb: 2,
                 }}
@@ -160,7 +175,7 @@ const LandingPage: React.FC = () => {
               >
                 Run volunteer programs with clarity and speed.
               </Typography>
-              <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.72)', mb: 4, lineHeight: 1.7 }}>
+              <Typography variant="h6" sx={{ color: alpha(theme.palette.text.primary, 0.72), mb: 4, lineHeight: 1.7 }}>
                 A professional platform built for community organizations to plan events, recruit volunteers,
                 and measure outcomes without manual overhead.
               </Typography>
@@ -171,12 +186,12 @@ const LandingPage: React.FC = () => {
                   endIcon={<ArrowForward />}
                   onClick={() => navigate(primaryCta.path)}
                   sx={{
-                    bgcolor: '#4f8cff',
-                    color: '#0b0f1a',
+                    bgcolor: theme.palette.primary.main,
+                    color: theme.palette.primary.contrastText,
                     fontWeight: 700,
                     px: 4,
                     py: 1.5,
-                    '&:hover': { bgcolor: '#3c7af0' },
+                    '&:hover': { bgcolor: theme.palette.primary.dark },
                   }}
                 >
                   {primaryCta.label}
@@ -186,22 +201,22 @@ const LandingPage: React.FC = () => {
                   size="large"
                   onClick={() => navigate(secondaryCta.path)}
                   sx={{
-                    borderColor: 'rgba(255,255,255,0.35)',
-                    color: 'white',
+                    borderColor: alpha(theme.palette.text.primary, 0.35),
+                    color: theme.palette.text.primary,
                     px: 4,
                     py: 1.5,
                     fontWeight: 600,
-                    '&:hover': { borderColor: 'rgba(255,255,255,0.65)', bgcolor: 'transparent' },
+                    '&:hover': { borderColor: alpha(theme.palette.text.primary, 0.65), bgcolor: 'transparent' },
                   }}
                 >
                   {secondaryCta.label}
                 </Button>
               </Stack>
               <Stack direction="row" spacing={2} sx={{ mt: 4, flexWrap: 'wrap' }}>
-                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.6) }}>
                   Trusted by local councils and NGOs
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.6) }}>
                   99.9% uptime commitment
                 </Typography>
               </Stack>
@@ -209,8 +224,8 @@ const LandingPage: React.FC = () => {
             <Grid item xs={12} md={6}>
               <Box
                 sx={{
-                  bgcolor: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  bgcolor: alpha(theme.palette.background.paper, 0.5),
+                  border: `1px solid ${alpha(theme.palette.text.primary, 0.08)}`,
                   borderRadius: 3,
                   p: 3,
                 }}
@@ -225,8 +240,8 @@ const LandingPage: React.FC = () => {
                     <Grid item xs={6} key={index}>
                       <Card
                         sx={{
-                          bgcolor: 'rgba(15,23,42,0.9)',
-                          border: '1px solid rgba(255,255,255,0.08)',
+                          bgcolor: alpha(theme.palette.background.paper, 0.9),
+                          border: `1px solid ${alpha(theme.palette.text.primary, 0.08)}`,
                           boxShadow: 'none',
                         }}
                       >
@@ -234,7 +249,7 @@ const LandingPage: React.FC = () => {
                           <Typography variant="h5" sx={{ fontWeight: 700 }}>
                             {stat.value}
                           </Typography>
-                          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                          <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.6) }}>
                             {stat.label}
                           </Typography>
                         </CardContent>
@@ -245,8 +260,8 @@ const LandingPage: React.FC = () => {
                 <Card
                   sx={{
                     mt: 2,
-                    bgcolor: 'rgba(79,140,255,0.12)',
-                    border: '1px solid rgba(79,140,255,0.4)',
+                    bgcolor: alpha(theme.palette.primary.main, 0.12),
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.4)}`,
                     boxShadow: 'none',
                   }}
                 >
@@ -254,7 +269,7 @@ const LandingPage: React.FC = () => {
                     <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
                       Live coordinator view
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.65)' }}>
+                    <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.65) }}>
                       Track registrations, volunteer roles, and event readiness in one dashboard.
                     </Typography>
                   </CardContent>
@@ -266,16 +281,16 @@ const LandingPage: React.FC = () => {
       </Box>
 
       {/* Features */}
-      <Box sx={{ bgcolor: '#0f172a', py: 10 }}>
+      <Box sx={{ bgcolor: theme.palette.background.paper, py: 10 }}>
         <Container maxWidth="lg">
           <Box sx={{ mb: 6, textAlign: 'center' }}>
-            <Typography variant="overline" sx={{ color: '#9bbcff', fontWeight: 600, letterSpacing: 1.5 }}>
+            <Typography variant="overline" sx={{ color: theme.palette.primary.light, fontWeight: 600, letterSpacing: 1.5 }}>
               Platform Capabilities
             </Typography>
             <Typography variant="h3" sx={{ fontWeight: 800, mt: 2 }}>
               Built for volunteer operations
             </Typography>
-            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.7)', mt: 2 }}>
+            <Typography variant="body1" sx={{ color: alpha(theme.palette.text.primary, 0.7), mt: 2 }}>
               Everything you need to publish events, coordinate teams, and report outcomes.
             </Typography>
           </Box>
@@ -285,17 +300,17 @@ const LandingPage: React.FC = () => {
                 <Card
                   sx={{
                     height: '100%',
-                    bgcolor: 'rgba(15,23,42,0.9)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    bgcolor: alpha(theme.palette.background.paper, 0.9),
+                    border: `1px solid ${alpha(theme.palette.text.primary, 0.08)}`,
                     boxShadow: 'none',
                   }}
                 >
                   <CardContent>
-                    <Box sx={{ color: '#9bbcff', mb: 2 }}>{feature.icon}</Box>
+                    <Box sx={{ color: theme.palette.primary.light, mb: 2 }}>{feature.icon}</Box>
                     <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                       {feature.title}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                    <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.7) }}>
                       {feature.description}
                     </Typography>
                   </CardContent>
@@ -307,14 +322,14 @@ const LandingPage: React.FC = () => {
       </Box>
 
       {/* Steps */}
-      <Box sx={{ bgcolor: '#0b0f1a', py: 10 }}>
+      <Box sx={{ bgcolor: theme.palette.background.default, py: 10 }}>
         <Container maxWidth="lg">
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={4}>
               <Typography variant="h3" sx={{ fontWeight: 800, mb: 2 }}>
                 A clean, repeatable flow
               </Typography>
-              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+              <Typography variant="body1" sx={{ color: alpha(theme.palette.text.primary, 0.7) }}>
                 Every event follows the same professional lifecycle, so teams stay aligned.
               </Typography>
             </Grid>
@@ -324,18 +339,18 @@ const LandingPage: React.FC = () => {
                   <Card
                     key={index}
                     sx={{
-                      bgcolor: 'rgba(15,23,42,0.9)',
-                      border: '1px solid rgba(255,255,255,0.08)',
+                      bgcolor: alpha(theme.palette.background.paper, 0.9),
+                      border: `1px solid ${alpha(theme.palette.text.primary, 0.08)}`,
                       boxShadow: 'none',
                     }}
                   >
                     <CardContent sx={{ display: 'flex', gap: 2 }}>
-                      <Box sx={{ color: '#9bbcff' }}>{step.icon}</Box>
+                      <Box sx={{ color: theme.palette.primary.light }}>{step.icon}</Box>
                       <Box>
                         <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
                           {step.title}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                        <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.7) }}>
                           {step.description}
                         </Typography>
                       </Box>
@@ -349,20 +364,26 @@ const LandingPage: React.FC = () => {
       </Box>
 
       {/* CTA */}
-      <Box sx={{ bgcolor: '#08101f', py: 8 }}>
+      <Box sx={{ bgcolor: alpha(theme.palette.primary.main, 0.08), py: 8 }}>
         <Container maxWidth="md">
           <Box sx={{ textAlign: 'center' }}>
             <Typography variant="h3" sx={{ fontWeight: 800, mb: 2 }}>
               Ready to run better volunteer programs?
             </Typography>
-            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.7)', mb: 4 }}>
+            <Typography variant="body1" sx={{ color: alpha(theme.palette.text.primary, 0.7), mb: 4 }}>
               Replace spreadsheets with a system built for community impact.
             </Typography>
             <Button
               variant="contained"
               size="large"
               onClick={() => navigate(primaryCta.path)}
-              sx={{ bgcolor: '#4f8cff', color: '#0b0f1a', fontWeight: 700, px: 6, py: 1.5 }}
+              sx={{
+                bgcolor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                fontWeight: 700,
+                px: 6,
+                py: 1.5,
+              }}
             >
               {primaryCta.label}
             </Button>
@@ -371,11 +392,11 @@ const LandingPage: React.FC = () => {
       </Box>
 
       {/* Footer */}
-      <Box sx={{ bgcolor: '#05070f', color: 'rgba(255,255,255,0.6)', py: 6 }}>
+      <Box sx={{ bgcolor: theme.palette.background.paper, color: alpha(theme.palette.text.primary, 0.6), py: 6 }}>
         <Container maxWidth="lg">
           <Grid container spacing={4}>
             <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', mb: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.text.primary, mb: 2 }}>
                 Volunteer Management
               </Typography>
               <Typography variant="body2" sx={{ lineHeight: 1.8 }}>
@@ -385,7 +406,7 @@ const LandingPage: React.FC = () => {
             <Grid item xs={12} md={8}>
               <Grid container spacing={4}>
                 <Grid item xs={6} sm={3}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'white', mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
                     Product
                   </Typography>
                   <Stack spacing={1}>
@@ -395,7 +416,7 @@ const LandingPage: React.FC = () => {
                   </Stack>
                 </Grid>
                 <Grid item xs={6} sm={3}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'white', mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
                     Company
                   </Typography>
                   <Stack spacing={1}>
@@ -405,7 +426,7 @@ const LandingPage: React.FC = () => {
                   </Stack>
                 </Grid>
                 <Grid item xs={6} sm={3}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'white', mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
                     Resources
                   </Typography>
                   <Stack spacing={1}>
@@ -415,7 +436,7 @@ const LandingPage: React.FC = () => {
                   </Stack>
                 </Grid>
                 <Grid item xs={6} sm={3}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'white', mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
                     Legal
                   </Typography>
                   <Stack spacing={1}>
@@ -427,7 +448,7 @@ const LandingPage: React.FC = () => {
               </Grid>
             </Grid>
           </Grid>
-          <Divider sx={{ my: 4, borderColor: 'rgba(255,255,255,0.12)' }} />
+          <Divider sx={{ my: 4, borderColor: alpha(theme.palette.text.primary, 0.12) }} />
           <Typography variant="body2" sx={{ textAlign: 'center' }}>
             (c) 2026 Volunteer Management Platform. All rights reserved.
           </Typography>

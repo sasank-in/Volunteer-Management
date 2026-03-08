@@ -2,7 +2,7 @@ import { createTheme, ThemeOptions } from '@mui/material/styles';
 
 const baseThemeOptions: ThemeOptions = {
   typography: {
-    fontFamily: '"Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", sans-serif',
+    fontFamily: '"Sora", "Segoe UI", "Helvetica", "Arial", sans-serif',
     h1: {
       fontSize: '2.5rem',
       fontWeight: 700,

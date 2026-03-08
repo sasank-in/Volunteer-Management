@@ -15,10 +15,15 @@ import java.util.UUID;
 public class ParticipationService {
   private final ParticipationRepository participationRepository;
   private final EventService eventService;
+  private final NotificationDispatchService notificationDispatchService;
 
-  public ParticipationService(ParticipationRepository participationRepository, EventService eventService) {
+  public ParticipationService(
+      ParticipationRepository participationRepository,
+      EventService eventService,
+      NotificationDispatchService notificationDispatchService) {
     this.participationRepository = participationRepository;
     this.eventService = eventService;
+    this.notificationDispatchService = notificationDispatchService;
   }
 
   @Transactional
@@ -45,6 +50,11 @@ public class ParticipationService {
 
     Participation saved = participationRepository.save(participation);
     eventService.incrementRegisteredVolunteers(eventId);
+    notificationDispatchService.sendRegistrationNotification(
+        event,
+        volunteerId,
+        volunteerEmail,
+        volunteerName);
     
     return saved;
   }
@@ -62,6 +72,13 @@ public class ParticipationService {
     participation.setCancelledAt(Instant.now());
     participationRepository.save(participation);
     eventService.decrementRegisteredVolunteers(eventId);
+
+    Event event = eventService.getEventById(eventId);
+    notificationDispatchService.sendCancellationNotification(
+        event,
+        volunteerId,
+        participation.getVolunteerEmail(),
+        participation.getVolunteerName());
   }
 
   public List<Participation> getEventParticipations(UUID eventId) {
