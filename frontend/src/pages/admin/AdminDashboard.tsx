@@ -4,6 +4,7 @@ import { People, Event, CheckCircle, TrendingUp } from '@mui/icons-material';
 import apiService from '@services/api';
 import type { UserAccount, Event as EventType } from '../../types';
 import { useNavigate } from 'react-router-dom';
+import MainLayout from '@components/Layout';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -82,14 +83,15 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Admin Dashboard</Typography>
-          <Typography variant="body2" color="text.secondary">Manage users and events</Typography>
+    <MainLayout>
+      <Container maxWidth="lg">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Admin Dashboard</Typography>
+            <Typography variant="body2" color="text.secondary">Manage users and events</Typography>
+          </Box>
+          <Button variant="outlined" onClick={() => navigate('/events')}>Go to Events</Button>
         </Box>
-        <Button variant="outlined" onClick={() => navigate('/events')}>Go to Events</Button>
-      </Box>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {stats.map((stat, index) => {
@@ -226,7 +228,8 @@ const AdminDashboard = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+      </Container>
+    </MainLayout>
   );
 };
 

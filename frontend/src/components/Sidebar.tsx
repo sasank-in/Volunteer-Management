@@ -18,6 +18,8 @@ import {
   Add as AddIcon,
   Person as PersonIcon,
   Notifications as NotificationsIcon,
+  Dashboard as DashboardIcon,
+  AdminPanelSettings as AdminPanelSettingsIcon,
   ExpandLess,
   ExpandMore,
 } from '@mui/icons-material';
@@ -52,6 +54,15 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   };
 
   const menuItems = [
+    ...(user?.role !== 'ADMIN'
+      ? [
+          {
+            label: 'Dashboard',
+            icon: <DashboardIcon />,
+            path: '/dashboard',
+          },
+        ]
+      : []),
     {
       label: 'Events',
       icon: <EventIcon />,
@@ -74,6 +85,15 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       icon: <NotificationsIcon />,
       path: '/notifications',
     },
+    ...(user?.role === 'ADMIN'
+      ? [
+          {
+            label: 'Admin',
+            icon: <AdminPanelSettingsIcon />,
+            path: '/admin',
+          },
+        ]
+      : []),
   ];
 
   const drawerContent = (

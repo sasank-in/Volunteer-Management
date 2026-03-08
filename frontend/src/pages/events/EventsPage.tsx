@@ -14,21 +14,7 @@ import {
   LinearProgress,
   InputAdornment,
   Paper,
-  Tabs,
-  Tab,
-  Divider,
-  Select,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Stack,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -37,25 +23,20 @@ import {
   LocationOn as LocationOnIcon,
   DateRange as DateRangeIcon,
 } from '@mui/icons-material';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
 import apiService from '@services/api';
 import MainLayout from '@components/Layout';
 import { formatDate, calculateProgressPercentage, getEventStatusColor, getEventStatusLabel } from '@utils/helpers';
-import { Event, UserAccount } from '../../types';
+import { Event } from '../../types';
 
 const EventsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [upcomingOnly, setUpcomingOnly] = useState(false);
-  const [adminTab, setAdminTab] = useState(0);
-  const [actionUserId, setActionUserId] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<UserAccount | null>(null);
 
   // Fetch events
   const { data: events = [], isLoading } = useQuery({
@@ -75,11 +56,6 @@ const EventsPage: React.FC = () => {
     enabled: user?.role === 'ORGANIZER',
   });
 
-  const { data: users = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => apiService.getAllUsers(),
-    enabled: user?.role === 'ADMIN',
-  });
 
   // Filter events
   const filteredEvents = events.filter((event) => {
@@ -94,12 +70,6 @@ const EventsPage: React.FC = () => {
   });
 
   const eventStatusOptions = ['OPEN', 'FULL', 'COMPLETED', 'CANCELLED'];
-
-  const isActiveUser = (u: UserAccount) => {
-    if (u.status) return u.status === 'ACTIVE';
-    if (typeof u.isActive === 'boolean') return u.isActive;
-    return true;
-  };
 
   const roleStats = useMemo(() => {
     if (user?.role === 'VOLUNTEER') {
@@ -120,60 +90,8 @@ const EventsPage: React.FC = () => {
         { label: 'Volunteers', value: volunteers },
       ];
     }
-    if (user?.role === 'ADMIN') {
-      const organizers = users.filter((u) => u.role === 'ORGANIZER').length;
-      return [
-        { label: 'Total Users', value: users.length },
-        { label: 'Total Events', value: events.length },
-        { label: 'Organizers', value: organizers },
-      ];
-    }
     return [];
-  }, [user?.role, participations, events, organizedEvents, users]);
-
-  const updateUserRoleMutation = useMutation({
-    mutationFn: ({ userId, role }: { userId: string; role: string }) =>
-      apiService.updateUserRole(userId, role),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
-  });
-
-  const updateUserStatusMutation = useMutation({
-    mutationFn: ({ userId, status }: { userId: string; status: 'ACTIVE' | 'INACTIVE' }) =>
-      apiService.updateUserStatus(userId, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
-  });
-
-  const deleteUserMutation = useMutation({
-    mutationFn: (userId: string) => apiService.deleteUser(userId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
-  });
-
-  const handleRoleChange = (userId: string, role: string) => {
-    setActionUserId(userId);
-    updateUserRoleMutation.mutate(
-      { userId, role },
-      { onSettled: () => setActionUserId(null) }
-    );
-  };
-
-  const handleStatusToggle = (userId: string, nextStatus: 'ACTIVE' | 'INACTIVE') => {
-    setActionUserId(userId);
-    updateUserStatusMutation.mutate(
-      { userId, status: nextStatus },
-      { onSettled: () => setActionUserId(null) }
-    );
-  };
-
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    setActionUserId(deleteTarget.id);
-    deleteUserMutation.mutate(deleteTarget.id, {
-      onSettled: () => {
-        setActionUserId(null);
-        setDeleteTarget(null);
-      },
-    });
-  };
+  }, [user?.role, participations, events, organizedEvents]);
 
   const truncateText = (value: string | undefined | null, maxLength: number) => {
     if (!value) return '';
@@ -307,19 +225,12 @@ const EventsPage: React.FC = () => {
               Events
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              {user?.role === 'ADMIN'
-                ? 'Oversee users and events'
-                : user?.role === 'ORGANIZER'
-                  ? 'Manage your events and volunteers'
-                  : 'Find and join volunteer opportunities'}
+              {user?.role === 'ORGANIZER'
+                ? 'Manage your events and volunteers'
+                : 'Find and join volunteer opportunities'}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1}>
-            {(user?.role === 'ADMIN') && (
-              <Button variant="outlined" onClick={() => setAdminTab(1)}>
-                Manage Users
-              </Button>
-            )}
             {(user?.role === 'ORGANIZER' || user?.role === 'ADMIN') && (
               <Button
                 variant="contained"
@@ -353,219 +264,116 @@ const EventsPage: React.FC = () => {
           </Grid>
         )}
 
-        {user?.role === 'ADMIN' && (
-          <Paper sx={{ mb: 4 }}>
-            <Tabs value={adminTab} onChange={(_, v) => setAdminTab(v)}>
-              <Tab label="Events" />
-              <Tab label="Users" />
-            </Tabs>
-          </Paper>
-        )}
-
-        {(user?.role !== 'ADMIN' || adminTab === 0) && (
-          <>
-            {/* Filters */}
-            <Paper sx={{ p: 3, mb: 4 }}>
-              <Grid container spacing={2}>
-                {/* Search */}
-                <Grid item xs={12} sm={6} md={4}>
-                  <TextField
-                    fullWidth
-                    placeholder="Search events..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon sx={{ color: 'text.secondary' }} />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-
-                {/* Status Filter */}
-                <Grid item xs={12} sm={6} md={4}>
-                  <Box>
-                    <Typography variant="caption" sx={{ fontWeight: 500, display: 'block', mb: 1 }}>
-                      Status
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      <Chip
-                        label="All"
-                        onClick={() => setStatusFilter(null)}
-                        variant={statusFilter === null ? 'filled' : 'outlined'}
-                        color={statusFilter === null ? 'primary' : 'default'}
-                        size="small"
-                      />
-                      {eventStatusOptions.map((status) => (
-                        <Chip
-                          key={status}
-                          label={status}
-                          onClick={() => setStatusFilter(status)}
-                          variant={statusFilter === status ? 'filled' : 'outlined'}
-                          color={statusFilter === status ? 'primary' : 'default'}
-                          size="small"
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                </Grid>
-
-                {/* Time Filter */}
-                <Grid item xs={12} sm={6} md={4}>
-                  <Box>
-                    <Typography variant="caption" sx={{ fontWeight: 500, display: 'block', mb: 1 }}>
-                      Timeline
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Chip
-                        label="All"
-                        onClick={() => setUpcomingOnly(false)}
-                        variant={!upcomingOnly ? 'filled' : 'outlined'}
-                        color={!upcomingOnly ? 'primary' : 'default'}
-                        size="small"
-                      />
-                      <Chip
-                        label="Upcoming"
-                        onClick={() => setUpcomingOnly(true)}
-                        variant={upcomingOnly ? 'filled' : 'outlined'}
-                        color={upcomingOnly ? 'primary' : 'default'}
-                        size="small"
-                      />
-                    </Box>
-                  </Box>
-                </Grid>
+        <>
+          {/* Filters */}
+          <Paper sx={{ p: 3, mb: 4 }}>
+            <Grid container spacing={2}>
+              {/* Search */}
+              <Grid item xs={12} sm={6} md={4}>
+                <TextField
+                  fullWidth
+                  placeholder="Search events..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
               </Grid>
-            </Paper>
-          </>
-        )}
+
+              {/* Status Filter */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Box>
+                  <Typography variant="caption" sx={{ fontWeight: 500, display: 'block', mb: 1 }}>
+                    Status
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Chip
+                      label="All"
+                      onClick={() => setStatusFilter(null)}
+                      variant={statusFilter === null ? 'filled' : 'outlined'}
+                      color={statusFilter === null ? 'primary' : 'default'}
+                      size="small"
+                    />
+                    {eventStatusOptions.map((status) => (
+                      <Chip
+                        key={status}
+                        label={status}
+                        onClick={() => setStatusFilter(status)}
+                        variant={statusFilter === status ? 'filled' : 'outlined'}
+                        color={statusFilter === status ? 'primary' : 'default'}
+                        size="small"
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* Time Filter */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Box>
+                  <Typography variant="caption" sx={{ fontWeight: 500, display: 'block', mb: 1 }}>
+                    Timeline
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Chip
+                      label="All"
+                      onClick={() => setUpcomingOnly(false)}
+                      variant={!upcomingOnly ? 'filled' : 'outlined'}
+                      color={!upcomingOnly ? 'primary' : 'default'}
+                      size="small"
+                    />
+                    <Chip
+                      label="Upcoming"
+                      onClick={() => setUpcomingOnly(true)}
+                      variant={upcomingOnly ? 'filled' : 'outlined'}
+                      color={upcomingOnly ? 'primary' : 'default'}
+                      size="small"
+                    />
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+          </Paper>
+        </>
 
         {/* Results */}
-        {(user?.role !== 'ADMIN' || adminTab === 0) ? (
-          isLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-              <CircularProgress />
-            </Box>
-          ) : filteredEvents.length === 0 ? (
-            <Paper sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                No events found
-              </Typography>
-              <Typography color="text.secondary">
-                {searchTerm
-                  ? 'Try adjusting your search filters'
-                  : 'Check back later for new opportunities'}
-              </Typography>
-            </Paper>
-          ) : (
-            <>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Showing {filteredEvents.length} of {events.length} events
-                </Typography>
-              </Box>
-
-              <Grid container spacing={3}>
-                {filteredEvents.map((event) => (
-                  <Grid item xs={12} sm={6} md={4} key={event.id}>
-                    <EventCard event={event} />
-                  </Grid>
-                ))}
-              </Grid>
-            </>
-          )
-        ) : (
-          <Paper>
-            <Box sx={{ p: 2 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                User Management
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Update roles, activate/deactivate, or remove users.
-              </Typography>
-            </Box>
-            <Divider />
-            <Box sx={{ p: 2, overflowX: 'auto' }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Username</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Role</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {users.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell>{u.username}</TableCell>
-                      <TableCell>{u.email}</TableCell>
-                      <TableCell>
-                        <Select
-                          size="small"
-                          value={u.role}
-                          onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                          disabled={actionUserId === u.id}
-                        >
-                          <MenuItem value="VOLUNTEER">VOLUNTEER</MenuItem>
-                          <MenuItem value="ORGANIZER">ORGANIZER</MenuItem>
-                          <MenuItem value="ADMIN">ADMIN</MenuItem>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={isActiveUser(u) ? 'ACTIVE' : 'INACTIVE'}
-                          size="small"
-                          color={isActiveUser(u) ? 'success' : 'default'}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() =>
-                              handleStatusToggle(u.id, isActiveUser(u) ? 'INACTIVE' : 'ACTIVE')
-                            }
-                            disabled={actionUserId === u.id}
-                          >
-                            {isActiveUser(u) ? 'Deactivate' : 'Activate'}
-                          </Button>
-                          <Button
-                            size="small"
-                            color="error"
-                            variant="outlined"
-                            onClick={() => setDeleteTarget(u)}
-                            disabled={actionUserId === u.id}
-                          >
-                            Delete
-                          </Button>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-          </Paper>
-        )}
-
-        <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
-          <DialogTitle>Delete User</DialogTitle>
-          <DialogContent>
-            <Typography variant="body2">
-              Are you sure you want to delete {deleteTarget?.username}? This action cannot be undone.
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+            <CircularProgress />
+          </Box>
+        ) : filteredEvents.length === 0 ? (
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              No events found
             </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteTarget(null)}>Cancel</Button>
-            <Button color="error" variant="contained" onClick={handleDelete} disabled={!!actionUserId}>
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+            <Typography color="text.secondary">
+              {searchTerm
+                ? 'Try adjusting your search filters'
+                : 'Check back later for new opportunities'}
+            </Typography>
+          </Paper>
+        ) : (
+          <>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" color="text.secondary">
+                Showing {filteredEvents.length} of {events.length} events
+              </Typography>
+            </Box>
+
+            <Grid container spacing={3}>
+              {filteredEvents.map((event) => (
+                <Grid item xs={12} sm={6} md={4} key={event.id}>
+                  <EventCard event={event} />
+                </Grid>
+              ))}
+            </Grid>
+          </>
+        )}
       </Container>
     </MainLayout>
   );

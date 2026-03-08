@@ -22,6 +22,8 @@ import EventDetailPage from '@pages/events/EventDetailPage';
 import CreateEventPage from '@pages/events/CreateEventPage';
 import ProfilePage from '@pages/profile/ProfilePage';
 import NotificationsPage from '@pages/notifications/NotificationsPage';
+import DashboardPage from '@pages/dashboard/DashboardPage';
+import AdminDashboard from '@pages/admin/AdminDashboard';
 
 // Components
 import ProtectedRoute from '@components/ProtectedRoute';
@@ -50,7 +52,10 @@ const EntryRoute: React.FC = () => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/events" replace />;
+    if (user?.role === 'ADMIN') {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <LandingPage />;
@@ -80,8 +85,30 @@ const App: React.FC = () => {
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
 
                 {/* Protected Routes */}
-                <Route path="/overview" element={<Navigate to="/events" replace />} />
-                <Route path="/dashboard" element={<Navigate to="/events" replace />} />
+                <Route
+                  path="/overview"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute requiredRoles={['ADMIN']}>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/events"
                   element={

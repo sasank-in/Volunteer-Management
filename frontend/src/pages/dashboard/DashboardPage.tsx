@@ -4,6 +4,7 @@ import {
   Container,
   Grid,
   Card,
+  CardActionArea,
   CardContent,
   Typography,
   Button,
@@ -34,6 +35,14 @@ const DashboardPage: React.FC = () => {
     completedEvents: 0,
     averageRating: 0,
   });
+
+  const truncateText = (value: string | undefined | null, maxLength: number) => {
+    if (!value) return '';
+    if (value.length <= maxLength) return value;
+    const trimmed = value.slice(0, maxLength);
+    const lastSpace = trimmed.lastIndexOf(' ');
+    return `${trimmed.slice(0, Math.max(0, lastSpace))}...`;
+  };
 
   // Fetch events
   const { data: events = [], isLoading: eventsLoading } = useQuery({
@@ -214,15 +223,14 @@ const DashboardPage: React.FC = () => {
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
-                      cursor: 'pointer',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&:hover': {
                         transform: 'translateY(-4px)',
                         boxShadow: 6,
                       },
                     }}
-                    onClick={() => navigate(`/events/${event.id}`)}
                   >
+                    <CardActionArea onClick={() => navigate(`/events/${event.id}`)} sx={{ height: '100%' }}>
                     {/* Status Badge */}
                     <Box
                       sx={{
@@ -261,7 +269,7 @@ const DashboardPage: React.FC = () => {
                         {event.title}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        {event.description.substring(0, 100)}...
+                        {truncateText(event.description, 110)}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" display="block">
                         📍 {event.location}
@@ -297,6 +305,7 @@ const DashboardPage: React.FC = () => {
                         sx={{ borderRadius: 1 }}
                       />
                     </Box>
+                    </CardActionArea>
                   </Card>
                 </Grid>
               ))}
