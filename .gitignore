@@ -1,51 +1,18 @@
-# Maven
-target/
-**/target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-backend/.mvn/timing.properties
-backend/.mvn/wrapper/maven-wrapper.jar
-
-# IDE
+/backend/target/
+/backend/.env
+/backend/backend_run.log
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.env
+/frontend/.env.*
+/frontend/.vite/
+/infra/.env
+/.env
+*.log
 .idea/
 .vscode/
 *.iml
 .classpath
 .project
 .settings/
-*.swp
-*.swo
-*~
-.qodo/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-backend_run.log
-
-# Environment
-.env
-.env.local
-.env.*.local
-backend/.env
-backend/**/.env
-
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.next/
-frontend/build/
-
-# Temporary files
-*.tmp
-*.bak
-test-*.bat
-test-*.sql
+*.db
