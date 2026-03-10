@@ -1,35 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Box, Container, Grid, Paper, Typography, Card, CardContent, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Tab, Tabs, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { People, Event, CheckCircle, TrendingUp } from '@mui/icons-material';
 import apiService from '@services/api';
 import type { UserAccount, Event as EventType } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '@components/Layout';
+import { useAuth } from '@hooks/useAuth';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [users, setUsers] = useState<UserAccount[]>([]);
-  const [events, setEvents] = useState<EventType[]>([]);
   const [tabValue, setTabValue] = useState(0);
   const [actionUserId, setActionUserId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserAccount | null>(null);
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const usersQuery = useQuery({
+    queryKey: ['admin', 'users'],
+    queryFn: () => apiService.getAllUsers(),
+    enabled: user?.role === 'ADMIN',
+  });
 
-  const loadData = async () => {
-    try {
-      const [usersData, eventsData] = await Promise.all([
-        apiService.getAllUsers(),
-        apiService.getAllEvents(),
-      ]);
-      setUsers(usersData);
-      setEvents(eventsData);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    }
-  };
+  const eventsQuery = useQuery({
+    queryKey: ['admin', 'events'],
+    queryFn: () => apiService.getAllEvents(),
+    enabled: user?.role === 'ADMIN',
+  });
+
+  const users: UserAccount[] = usersQuery.data ?? [];
+  const events: EventType[] = eventsQuery.data ?? [];
 
   const isActiveUser = (user: UserAccount) => {
     if (user.status) return user.status === 'ACTIVE';
@@ -37,42 +37,48 @@ const AdminDashboard = () => {
     return true;
   };
 
-  const handleRoleChange = async (userId: string, role: string) => {
-    try {
-      setActionUserId(userId);
-      await apiService.updateUserRole(userId, role);
-      await loadData();
-    } catch (error) {
-      console.error('Failed to update role:', error);
-    } finally {
-      setActionUserId(null);
-    }
+  const updateUserRoleMutation = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: string }) =>
+      apiService.updateUserRole(userId, role),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
+  });
+
+  const updateUserStatusMutation = useMutation({
+    mutationFn: ({ userId, status }: { userId: string; status: 'ACTIVE' | 'INACTIVE' }) =>
+      apiService.updateUserStatus(userId, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: string) => apiService.deleteUser(userId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
+  });
+
+  const handleRoleChange = (userId: string, role: string) => {
+    setActionUserId(userId);
+    updateUserRoleMutation.mutate(
+      { userId, role },
+      { onSettled: () => setActionUserId(null) }
+    );
   };
 
-  const handleStatusToggle = async (userId: string, nextStatus: 'ACTIVE' | 'INACTIVE') => {
-    try {
-      setActionUserId(userId);
-      await apiService.updateUserStatus(userId, nextStatus);
-      await loadData();
-    } catch (error) {
-      console.error('Failed to update status:', error);
-    } finally {
-      setActionUserId(null);
-    }
+  const handleStatusToggle = (userId: string, nextStatus: 'ACTIVE' | 'INACTIVE') => {
+    setActionUserId(userId);
+    updateUserStatusMutation.mutate(
+      { userId, status: nextStatus },
+      { onSettled: () => setActionUserId(null) }
+    );
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteTarget) return;
-    try {
-      setActionUserId(deleteTarget.id);
-      await apiService.deleteUser(deleteTarget.id);
-      await loadData();
-      setDeleteTarget(null);
-    } catch (error) {
-      console.error('Failed to delete user:', error);
-    } finally {
-      setActionUserId(null);
-    }
+    setActionUserId(deleteTarget.id);
+    deleteUserMutation.mutate(deleteTarget.id, {
+      onSettled: () => {
+        setActionUserId(null);
+        setDeleteTarget(null);
+      },
+    });
   };
 
   const stats = [
@@ -81,6 +87,11 @@ const AdminDashboard = () => {
     { title: 'Organizers', value: users.filter(u => u.role === 'ORGANIZER').length, icon: CheckCircle, color: '#f59e0b' },
     { title: 'Volunteers', value: users.filter(u => u.role === 'VOLUNTEER').length, icon: TrendingUp, color: '#8b5cf6' },
   ];
+
+  const usersLoading = usersQuery.isLoading;
+  const eventsLoading = eventsQuery.isLoading;
+  const usersError = usersQuery.isError;
+  const eventsError = eventsQuery.isError;
 
   return (
     <MainLayout>
@@ -92,6 +103,39 @@ const AdminDashboard = () => {
           </Box>
           <Button variant="outlined" onClick={() => navigate('/events')}>Go to Events</Button>
         </Box>
+
+        {(usersError || eventsError) && (
+          <Paper sx={{ p: 3, mb: 4 }}>
+            {usersError && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Failed to load users.
+                </Typography>
+                <Button variant="outlined" onClick={() => usersQuery.refetch()}>
+                  Retry users
+                </Button>
+              </Box>
+            )}
+            {eventsError && (
+              <Box>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Failed to load events.
+                </Typography>
+                <Button variant="outlined" onClick={() => eventsQuery.refetch()}>
+                  Retry events
+                </Button>
+              </Box>
+            )}
+          </Paper>
+        )}
+
+        {(usersLoading || eventsLoading) && !(usersError || eventsError) && (
+          <Paper sx={{ p: 3, mb: 4 }}>
+            <Typography variant="body2" color="text.secondary">
+              Loading admin data...
+            </Typography>
+          </Paper>
+        )}
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {stats.map((stat, index) => {

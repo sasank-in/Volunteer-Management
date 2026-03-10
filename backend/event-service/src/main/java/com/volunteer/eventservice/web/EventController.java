@@ -33,7 +33,7 @@ public class EventController {
   }
 
   @GetMapping
-  public List<EventResponse> getAllEvents(@RequestParam(required = false) Boolean upcoming) {
+  public List<EventResponse> getAllEvents(@RequestParam(name = "upcoming", required = false) Boolean upcoming) {
     List<Event> events = upcoming != null && upcoming
         ? eventService.getUpcomingEvents()
         : eventService.getAllEvents();

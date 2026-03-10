@@ -39,7 +39,7 @@ public class EventService {
     return eventRepository.save(event);
   }
 
-  @Cacheable(value = "events", key = "#id")
+  @Cacheable(value = "events", key = "#root.args[0]")
   public Event getEventById(UUID id) {
     return eventRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Event not found"));
@@ -55,7 +55,7 @@ public class EventService {
     return eventRepository.findByStatusAndEventDateAfter(EventStatus.OPEN, LocalDateTime.now());
   }
 
-  @Cacheable(value = "events", key = "#organizerId")
+  @Cacheable(value = "events", key = "#root.args[0]")
   public List<Event> getEventsByOrganizer(UUID organizerId) {
     return eventRepository.findByOrganizerId(organizerId);
   }
@@ -132,7 +132,7 @@ public class EventService {
     }
   }
 
-  @Cacheable(value = "events", key = "'rating_' + #eventId")
+  @Cacheable(value = "events", key = "'rating_' + #root.args[0]")
   public Double getAverageRating(UUID eventId) {
     return feedbackRepository.getAverageRatingForEvent(eventId);
   }

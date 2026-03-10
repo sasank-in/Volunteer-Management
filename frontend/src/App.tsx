@@ -41,7 +41,7 @@ const queryClient = new QueryClient({
 
 // Entry Route Component - Public landing or workspace redirect
 const EntryRoute: React.FC = () => {
-  const { isAuthenticated, isLoading, isInitialized } = useAuthStore();
+  const { isAuthenticated, isLoading, isInitialized, user } = useAuthStore();
 
   if (!isInitialized || isLoading) {
     return (
