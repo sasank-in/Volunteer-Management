@@ -9,6 +9,8 @@ spring:
   cloud:
     config:
       fail-fast: true
+      import-check:
+        enabled: ${SPRING_CLOUD_CONFIG_IMPORT_CHECK_ENABLED:false}
   datasource:
     url: ${NOTIFICATION_DB_URL}
     username: ${DB_USER}
@@ -44,6 +46,10 @@ security:
   jwt:
     issuer: ${JWT_ISSUER:volunteer-user-service}
     secret: ${JWT_SECRET:}
+
+notification:
+  internal:
+    token: ${NOTIFICATION_INTERNAL_TOKEN:dev-notify-token}
 
 resilience4j:
   circuitbreaker:

@@ -27,7 +27,8 @@ public class ParticipationService {
   }
 
   @Transactional
-  public Participation registerForEvent(UUID eventId, UUID volunteerId, String volunteerName, String volunteerEmail) {
+  public Participation registerForEvent(UUID eventId, UUID volunteerId, String volunteerName,
+      String volunteerEmail, String authToken) {
     Event event = eventService.getEventById(eventId);
     
     if (event.getStatus() == EventStatus.FULL) {
@@ -54,13 +55,15 @@ public class ParticipationService {
         event,
         volunteerId,
         volunteerEmail,
-        volunteerName);
+        volunteerName,
+        authToken);
+    notificationDispatchService.sendOrganizerRegistrationNotification(event, saved, authToken);
     
     return saved;
   }
 
   @Transactional
-  public void cancelParticipation(UUID eventId, UUID volunteerId) {
+  public void cancelParticipation(UUID eventId, UUID volunteerId, String authToken) {
     Participation participation = participationRepository.findByEventIdAndVolunteerId(eventId, volunteerId)
         .orElseThrow(() -> new IllegalArgumentException("Participation not found"));
 
@@ -78,7 +81,9 @@ public class ParticipationService {
         event,
         volunteerId,
         participation.getVolunteerEmail(),
-        participation.getVolunteerName());
+        participation.getVolunteerName(),
+        authToken);
+    notificationDispatchService.sendOrganizerCancellationNotification(event, participation, authToken);
   }
 
   public List<Participation> getEventParticipations(UUID eventId) {

@@ -25,9 +25,17 @@ public class ParticipationController {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     UUID volunteerId = UUID.fromString(jwt.getClaimAsString("userId"));
     String volunteerName = jwt.getClaimAsString("username");
-    String volunteerEmail = jwt.getSubject();
+    String volunteerEmail = jwt.getClaimAsString("email");
+    if (volunteerEmail == null || volunteerEmail.isBlank()) {
+      volunteerEmail = jwt.getSubject();
+    }
 
-    Participation participation = participationService.registerForEvent(eventId, volunteerId, volunteerName, volunteerEmail);
+    Participation participation = participationService.registerForEvent(
+        eventId,
+        volunteerId,
+        volunteerName,
+        volunteerEmail,
+        jwt.getTokenValue());
     return toResponse(participation);
   }
 
@@ -35,7 +43,7 @@ public class ParticipationController {
   public Map<String, String> cancelParticipation(@PathVariable("eventId") UUID eventId, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     UUID volunteerId = UUID.fromString(jwt.getClaimAsString("userId"));
-    participationService.cancelParticipation(eventId, volunteerId);
+    participationService.cancelParticipation(eventId, volunteerId, jwt.getTokenValue());
     return Map.of("message", "Participation cancelled successfully");
   }
 

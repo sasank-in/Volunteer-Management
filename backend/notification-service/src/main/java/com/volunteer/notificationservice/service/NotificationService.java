@@ -37,7 +37,10 @@ public class NotificationService {
     notification.setMessage(message);
     notification.setEventId(eventId);
     notification.setStatus(NotificationStatus.PENDING);
-    return notificationRepository.save(notification);
+    Notification saved = notificationRepository.save(notification);
+    // Fire-and-forget send after persisting, keeps API fast and retries on failure.
+    sendNotification(saved.getId());
+    return saved;
   }
 
   @Transactional

@@ -14,11 +14,18 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 public class SecurityConfig {
   @Value("${security.jwt.secret}")
   private String jwtSecret;
+  private final InternalTokenFilter internalTokenFilter;
+
+  public SecurityConfig(InternalTokenFilter internalTokenFilter) {
+    this.internalTokenFilter = internalTokenFilter;
+  }
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,8 +39,11 @@ public class SecurityConfig {
                 "/v3/api-docs/**",
                 "/actuator/health")
             .permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/notifications/**")
+            .authenticated()
             .anyRequest()
             .authenticated())
+        .addFilterBefore(internalTokenFilter, UsernamePasswordAuthenticationFilter.class)
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
     return http.build();
   }

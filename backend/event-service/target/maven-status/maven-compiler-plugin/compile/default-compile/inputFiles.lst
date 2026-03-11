@@ -15,6 +15,7 @@ C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunte
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\repository\FeedbackRepository.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\repository\NotificationOutboxRepository.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\repository\ParticipationRepository.java
+C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\EventReminderService.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\EventService.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\FeedbackService.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\InterServiceCallExample.java

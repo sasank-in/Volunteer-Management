@@ -33,6 +33,7 @@ public class JwtTokenService {
         .subject(account.getUsername())
         .claim("userId", account.getId().toString())
         .claim("username", account.getUsername())
+        .claim("email", account.getEmail())
         .claim("role", role.name())
         .claim("roles", java.util.List.of(role.name()))
         .build();

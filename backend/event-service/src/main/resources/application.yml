@@ -29,10 +29,15 @@ security:
 
 notification:
   service:
-    url: ${NOTIFICATION_SERVICE_URL:http://notification-service}
+    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8080}
+  internal:
+    token: ${NOTIFICATION_INTERNAL_TOKEN:dev-notify-token}
   outbox:
     max-attempts: ${NOTIFICATION_OUTBOX_MAX_ATTEMPTS:5}
     retry-delay-ms: ${NOTIFICATION_OUTBOX_RETRY_DELAY_MS:60000}
+  reminder:
+    hours-before: ${NOTIFICATION_REMINDER_HOURS_BEFORE:24}
+    check-interval-ms: ${NOTIFICATION_REMINDER_CHECK_INTERVAL_MS:900000}
 
 resilience4j:
   circuitbreaker:

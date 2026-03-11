@@ -201,15 +201,11 @@ const EventsPage: React.FC = () => {
           />
         </Box>
 
-        {/* Action Button */}
+        {/* Action Hint */}
         <Box sx={{ px: 2, pb: 2 }}>
-          <Button
-            fullWidth
-            variant={event.status === 'OPEN' ? 'contained' : 'outlined'}
-            disabled={event.status !== 'OPEN'}
-          >
-            {event.status === 'OPEN' ? 'View Details' : getEventStatusLabel(event.status)}
-          </Button>
+          <Typography variant="body2" color="text.secondary">
+            {event.status === 'OPEN' ? 'View details' : getEventStatusLabel(event.status)}
+          </Typography>
         </Box>
       </CardActionArea>
     </Card>

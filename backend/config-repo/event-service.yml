@@ -26,6 +26,12 @@ security:
     issuer: ${JWT_ISSUER:volunteer-user-service}
     secret: ${JWT_SECRET:}
 
+notification:
+  service:
+    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8080}
+  internal:
+    token: ${NOTIFICATION_INTERNAL_TOKEN:dev-notify-token}
+
 management:
   endpoints:
     web:

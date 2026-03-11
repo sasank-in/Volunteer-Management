@@ -27,8 +27,12 @@ public class EventController {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     UUID organizerId = UUID.fromString(jwt.getClaimAsString("userId"));
     String organizerName = jwt.getClaimAsString("username");
+    String organizerEmail = jwt.getClaimAsString("email");
+    if (organizerEmail == null || organizerEmail.isBlank()) {
+      organizerEmail = jwt.getSubject();
+    }
 
-    Event event = eventService.createEvent(request, organizerId, organizerName);
+    Event event = eventService.createEvent(request, organizerId, organizerName, organizerEmail);
     return toResponse(event);
   }
 
@@ -59,7 +63,7 @@ public class EventController {
       Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     UUID organizerId = UUID.fromString(jwt.getClaimAsString("userId"));
-    Event event = eventService.updateEvent(id, request, organizerId);
+    Event event = eventService.updateEvent(id, request, organizerId, jwt.getTokenValue());
     return toResponse(event);
   }
 
@@ -67,7 +71,7 @@ public class EventController {
   public void deleteEvent(@PathVariable("id") UUID id, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
     UUID organizerId = UUID.fromString(jwt.getClaimAsString("userId"));
-    eventService.deleteEvent(id, organizerId);
+    eventService.deleteEvent(id, organizerId, jwt.getTokenValue());
   }
 
   private EventResponse toResponse(Event event) {

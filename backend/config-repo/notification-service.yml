@@ -37,6 +37,10 @@ security:
     issuer: ${JWT_ISSUER:volunteer-user-service}
     secret: ${JWT_SECRET:}
 
+notification:
+  internal:
+    token: ${NOTIFICATION_INTERNAL_TOKEN:dev-notify-token}
+
 management:
   endpoints:
     web:

@@ -36,6 +36,9 @@ public class Event {
   @Column(name = "organizer_name", nullable = false, length = 100)
   private String organizerName;
 
+  @Column(name = "organizer_email", length = 120)
+  private String organizerEmail;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 30)
   private EventStatus status = EventStatus.OPEN;
@@ -45,6 +48,9 @@ public class Event {
 
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
+
+  @Column(name = "reminder_sent_at")
+  private Instant reminderSentAt;
 
   @PrePersist
   public void onCreate() {
@@ -137,6 +143,14 @@ public class Event {
     this.organizerName = organizerName;
   }
 
+  public String getOrganizerEmail() {
+    return organizerEmail;
+  }
+
+  public void setOrganizerEmail(String organizerEmail) {
+    this.organizerEmail = organizerEmail;
+  }
+
   public EventStatus getStatus() {
     return status;
   }
@@ -151,5 +165,13 @@ public class Event {
 
   public Instant getUpdatedAt() {
     return updatedAt;
+  }
+
+  public Instant getReminderSentAt() {
+    return reminderSentAt;
+  }
+
+  public void setReminderSentAt(Instant reminderSentAt) {
+    this.reminderSentAt = reminderSentAt;
   }
 }

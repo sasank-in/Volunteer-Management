@@ -4,6 +4,9 @@ import com.volunteer.eventservice.domain.Event;
 import com.volunteer.eventservice.domain.EventStatus;
 import com.volunteer.eventservice.repository.EventRepository;
 import com.volunteer.eventservice.repository.FeedbackRepository;
+import com.volunteer.eventservice.repository.ParticipationRepository;
+import com.volunteer.eventservice.domain.Participation;
+import com.volunteer.eventservice.domain.ParticipationStatus;
 import com.volunteer.eventservice.web.dto.CreateEventRequest;
 import com.volunteer.eventservice.web.dto.UpdateEventRequest;
 import org.springframework.cache.annotation.CacheEvict;
@@ -18,15 +21,23 @@ import java.util.UUID;
 public class EventService {
   private final EventRepository eventRepository;
   private final FeedbackRepository feedbackRepository;
+  private final ParticipationRepository participationRepository;
+  private final NotificationDispatchService notificationDispatchService;
 
-  public EventService(EventRepository eventRepository, FeedbackRepository feedbackRepository) {
+  public EventService(
+      EventRepository eventRepository,
+      FeedbackRepository feedbackRepository,
+      ParticipationRepository participationRepository,
+      NotificationDispatchService notificationDispatchService) {
     this.eventRepository = eventRepository;
     this.feedbackRepository = feedbackRepository;
+    this.participationRepository = participationRepository;
+    this.notificationDispatchService = notificationDispatchService;
   }
 
   @Transactional
   @CacheEvict(value = "events", allEntries = true)
-  public Event createEvent(CreateEventRequest request, UUID organizerId, String organizerName) {
+  public Event createEvent(CreateEventRequest request, UUID organizerId, String organizerName, String organizerEmail) {
     Event event = new Event();
     event.setTitle(request.getTitle());
     event.setDescription(request.getDescription());
@@ -35,6 +46,7 @@ public class EventService {
     event.setRequiredVolunteers(request.getRequiredVolunteers());
     event.setOrganizerId(organizerId);
     event.setOrganizerName(organizerName);
+    event.setOrganizerEmail(organizerEmail);
     event.setStatus(EventStatus.OPEN);
     return eventRepository.save(event);
   }
@@ -62,8 +74,12 @@ public class EventService {
 
   @Transactional
   @CacheEvict(value = "events", allEntries = true)
-  public Event updateEvent(UUID id, UpdateEventRequest request, UUID organizerId) {
+  public Event updateEvent(UUID id, UpdateEventRequest request, UUID organizerId, String authToken) {
     Event event = getEventById(id);
+    EventStatus previousStatus = event.getStatus();
+    String previousTitle = event.getTitle();
+    String previousLocation = event.getLocation();
+    LocalDateTime previousDate = event.getEventDate();
     
     if (!event.getOrganizerId().equals(organizerId)) {
       throw new IllegalArgumentException("Only the organizer can update this event");
@@ -89,18 +105,41 @@ public class EventService {
       event.setStatus(request.getStatus());
     }
 
-    return eventRepository.save(event);
+    Event saved = eventRepository.save(event);
+
+    boolean coreDetailsChanged = (request.getTitle() != null && !request.getTitle().equals(previousTitle))
+        || (request.getLocation() != null && !request.getLocation().equals(previousLocation))
+        || (request.getEventDate() != null && !request.getEventDate().equals(previousDate))
+        || request.getRequiredVolunteers() != null;
+
+    if (request.getEventDate() != null && !request.getEventDate().equals(previousDate)) {
+      saved.setReminderSentAt(null);
+      eventRepository.save(saved);
+    }
+
+    if (request.getStatus() != null && request.getStatus() != previousStatus) {
+      if (request.getStatus() == EventStatus.CANCELLED) {
+        notifyParticipantsCancelled(saved, authToken);
+      } else if (request.getStatus() == EventStatus.COMPLETED) {
+        notifyParticipantsCompleted(saved, authToken);
+      }
+    } else if (coreDetailsChanged) {
+      notifyParticipantsUpdated(saved, authToken);
+    }
+
+    return saved;
   }
 
   @Transactional
   @CacheEvict(value = "events", allEntries = true)
-  public void deleteEvent(UUID id, UUID organizerId) {
+  public void deleteEvent(UUID id, UUID organizerId, String authToken) {
     Event event = getEventById(id);
     
     if (!event.getOrganizerId().equals(organizerId)) {
       throw new IllegalArgumentException("Only the organizer can delete this event");
     }
 
+    notifyParticipantsCancelled(event, authToken);
     eventRepository.deleteById(id);
   }
 
@@ -135,5 +174,32 @@ public class EventService {
   @Cacheable(value = "events", key = "'rating_' + #root.args[0]")
   public Double getAverageRating(UUID eventId) {
     return feedbackRepository.getAverageRatingForEvent(eventId);
+  }
+
+  private void notifyParticipantsUpdated(Event event, String authToken) {
+    List<Participation> participants = participationRepository.findByEventId(event.getId());
+    for (Participation participant : participants) {
+      if (participant.getStatus() != ParticipationStatus.CANCELLED) {
+        notificationDispatchService.sendEventUpdatedNotification(event, participant, authToken);
+      }
+    }
+  }
+
+  private void notifyParticipantsCancelled(Event event, String authToken) {
+    List<Participation> participants = participationRepository.findByEventId(event.getId());
+    for (Participation participant : participants) {
+      if (participant.getStatus() == ParticipationStatus.REGISTERED) {
+        notificationDispatchService.sendEventCancelledNotification(event, participant, authToken);
+      }
+    }
+  }
+
+  private void notifyParticipantsCompleted(Event event, String authToken) {
+    List<Participation> participants = participationRepository.findByEventId(event.getId());
+    for (Participation participant : participants) {
+      if (participant.getStatus() != ParticipationStatus.CANCELLED) {
+        notificationDispatchService.sendEventCompletedNotification(event, participant, authToken);
+      }
+    }
   }
 }
