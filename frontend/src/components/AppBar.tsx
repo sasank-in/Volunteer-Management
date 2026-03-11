@@ -79,8 +79,10 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
       <MuiAppBar
         position="sticky"
         elevation={0}
+        color="default"
         sx={{
           bgcolor: 'background.paper',
+          color: 'text.primary',
           borderBottom: '1px solid',
           borderColor: 'divider',
           backdropFilter: 'blur(10px)',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import {
   Box,
   Container,
@@ -29,13 +29,6 @@ import { formatDate, calculateProgressPercentage, getEventStatusColor, getEventS
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    totalEvents: 0,
-    registeredEvents: 0,
-    completedEvents: 0,
-    averageRating: 0,
-  });
-
   const truncateText = (value: string | undefined | null, maxLength: number) => {
     if (!value) return '';
     if (value.length <= maxLength) return value;
@@ -67,56 +60,50 @@ const DashboardPage: React.FC = () => {
     enabled: user?.role === 'ORGANIZER',
   });
 
-  useEffect(() => {
-    const calculateStats = async () => {
-      const newStats = {
-        totalEvents: events.length,
-        registeredEvents: participations.length,
-        completedEvents: participations.filter((p) => p.status === 'ATTENDED').length,
-        averageRating: 0,
-      };
-
-      // Calculate average rating if volunteer
-      if (user?.role === 'VOLUNTEER' && participations.length > 0) {
-        const ratings = await Promise.all(
-          participations.map((p) =>
-            apiService
-              .getAverageRating(p.eventId)
-              .catch(() => 0)
-          )
-        );
-        newStats.averageRating = 
-          ratings.reduce((a, b) => a + b, 0) / ratings.length || 0;
-      }
-
-      setStats(newStats);
+  const baseStats = useMemo(() => {
+    return {
+      totalEvents: events.length,
+      registeredEvents: participations.length,
+      completedEvents: participations.filter((p) => p.status === 'ATTENDED').length,
     };
+  }, [events.length, participations]);
 
-    calculateStats();
-  }, [events, participations, user?.role]);
+  const avgRatingQuery = useQuery({
+    queryKey: ['avg-rating', participations.map((p) => p.eventId).join('|')],
+    queryFn: async () => {
+      if (participations.length === 0) {
+        return 0;
+      }
+      const ratings = await Promise.all(
+        participations.map((p) => apiService.getAverageRating(p.eventId).catch(() => 0))
+      );
+      return ratings.reduce((a, b) => a + b, 0) / ratings.length || 0;
+    },
+    enabled: user?.role === 'VOLUNTEER',
+  });
 
   const statCards = [
     {
       label: 'Total Events',
-      value: stats.totalEvents,
+      value: baseStats.totalEvents,
       icon: <EventIcon />,
       color: '#3b82f6',
     },
     {
       label: user?.role === 'VOLUNTEER' ? 'Registered Events' : 'Organized Events',
-      value: user?.role === 'VOLUNTEER' ? stats.registeredEvents : organizedEvents.length,
+      value: user?.role === 'VOLUNTEER' ? baseStats.registeredEvents : organizedEvents.length,
       icon: <PeopleIcon />,
       color: '#8b5cf6',
     },
     {
       label: 'Completed Events',
-      value: stats.completedEvents,
+      value: baseStats.completedEvents,
       icon: <TrendingUpIcon />,
       color: '#10b981',
     },
     {
       label: 'Avg Rating',
-      value: stats.averageRating.toFixed(1),
+      value: avgRatingQuery.data?.toFixed(1) ?? '0.0',
       icon: <StarIcon />,
       color: '#f59e0b',
       visible: user?.role === 'VOLUNTEER',

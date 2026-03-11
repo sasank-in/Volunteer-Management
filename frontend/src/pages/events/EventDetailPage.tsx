@@ -58,9 +58,12 @@ const EventDetailPage: React.FC = () => {
     comment: '',
   });
   const [registrationMessage, setRegistrationMessage] = useState('');
+  const [notificationMessage, setNotificationMessage] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [editData, setEditData] = useState<UpdateEventRequest>({});
   const [editError, setEditError] = useState('');
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   // Fetch event details
   const { data: event, isLoading: eventLoading } = useQuery({
@@ -95,7 +98,9 @@ const EventDetailPage: React.FC = () => {
     mutationFn: () => apiService.registerForEvent(eventId!),
     onSuccess: () => {
       setRegistrationMessage('Successfully registered for event!');
+      setNotificationMessage('Notification queued for delivery.');
       setTimeout(() => setRegistrationMessage(''), 3000);
+      setTimeout(() => setNotificationMessage(''), 3000);
       queryClient.invalidateQueries({ queryKey: ['event', eventId] });
       queryClient.invalidateQueries({ queryKey: ['event-participants', eventId] });
       queryClient.invalidateQueries({ queryKey: ['my-participations'] });
@@ -108,7 +113,9 @@ const EventDetailPage: React.FC = () => {
     mutationFn: () => apiService.cancelParticipation(eventId!),
     onSuccess: () => {
       setRegistrationMessage('Successfully cancelled registration.');
+      setNotificationMessage('Notification queued for delivery.');
       setTimeout(() => setRegistrationMessage(''), 3000);
+      setTimeout(() => setNotificationMessage(''), 3000);
       queryClient.invalidateQueries({ queryKey: ['event', eventId] });
       queryClient.invalidateQueries({ queryKey: ['event-participants', eventId] });
       queryClient.invalidateQueries({ queryKey: ['my-participations'] });
@@ -147,6 +154,19 @@ const EventDetailPage: React.FC = () => {
     },
   });
 
+  const deleteEventMutation = useMutation({
+    mutationFn: () => apiService.deleteEvent(eventId!),
+    onSuccess: () => {
+      setDeleteOpen(false);
+      setDeleteError('');
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      navigate('/events');
+    },
+    onError: (err: any) => {
+      setDeleteError(err.response?.data?.error || 'Failed to delete event. Please try again.');
+    },
+  });
+
   if (eventLoading) {
     return (
       <MainLayout>
@@ -180,6 +200,7 @@ const EventDetailPage: React.FC = () => {
   };
 
   const isOrganizer = user?.id === event.organizerId;
+  const isAdmin = user?.role === 'ADMIN';
   const myParticipation = myParticipations.find(
     (p) => p.eventId === event.id && p.status !== 'CANCELLED'
   );
@@ -416,8 +437,21 @@ const EventDetailPage: React.FC = () => {
                     {registrationMessage}
                   </Alert>
                 )}
+                {notificationMessage && (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    {notificationMessage}
+                  </Alert>
+                )}
+                {isAdmin && (
+                  <Chip
+                    label="Admin mode"
+                    color="warning"
+                    size="small"
+                    sx={{ mb: 2, fontWeight: 600 }}
+                  />
+                )}
 
-                {isOrganizer ? (
+                {isOrganizer || isAdmin ? (
                   <>
                     <Button
                       fullWidth
@@ -439,8 +473,21 @@ const EventDetailPage: React.FC = () => {
                     >
                       Edit Event
                     </Button>
+                    <Divider sx={{ my: 1.5 }} />
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      color="error"
+                      onClick={() => {
+                        setDeleteError('');
+                        setDeleteOpen(true);
+                      }}
+                      sx={{ mb: 1, borderWidth: 2 }}
+                    >
+                      Delete Event
+                    </Button>
                     <Button fullWidth variant="outlined" disabled>
-                      You're the organizer
+                      {isAdmin ? 'Admin access' : "You're the organizer"}
                     </Button>
                   </>
                 ) : isRegistered ? (
@@ -574,20 +621,6 @@ const EventDetailPage: React.FC = () => {
                 fullWidth
               />
               <TextField
-                label="Required Volunteers"
-                type="number"
-                value={editData.requiredVolunteers ?? ''}
-                onChange={(e) =>
-                  setEditData((prev) => ({
-                    ...prev,
-                    requiredVolunteers:
-                      e.target.value === '' ? undefined : parseInt(e.target.value, 10),
-                  }))
-                }
-                inputProps={{ min: 1 }}
-                fullWidth
-              />
-              <TextField
                 label="Status"
                 select
                 value={editData.status || 'OPEN'}
@@ -605,6 +638,20 @@ const EventDetailPage: React.FC = () => {
                   </MenuItem>
                 ))}
               </TextField>
+              <TextField
+                label="Required Volunteers"
+                type="number"
+                value={editData.requiredVolunteers ?? ''}
+                onChange={(e) =>
+                  setEditData((prev) => ({
+                    ...prev,
+                    requiredVolunteers:
+                      e.target.value === '' ? undefined : parseInt(e.target.value, 10),
+                  }))
+                }
+                inputProps={{ min: 1 }}
+                fullWidth
+              />
             </Box>
           </DialogContent>
           <DialogActions>
@@ -663,6 +710,34 @@ const EventDetailPage: React.FC = () => {
               disabled={feedbackMutation.isPending}
             >
               Submit Feedback
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>Delete Event</DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 1 }}>
+              {deleteError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {deleteError}
+                </Alert>
+              )}
+              <Typography variant="body2">
+                Are you sure you want to delete this event? This action cannot be undone.
+              </Typography>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
+            <Button
+              color="error"
+              variant="contained"
+              onClick={() => deleteEventMutation.mutate()}
+              disabled={deleteEventMutation.isPending}
+            >
+              {deleteEventMutation.isPending ? 'Deleting...' : 'Delete Event'}
             </Button>
           </DialogActions>
         </Dialog>

@@ -202,10 +202,17 @@ const EventsPage: React.FC = () => {
         </Box>
 
         {/* Action Hint */}
-        <Box sx={{ px: 2, pb: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            {event.status === 'OPEN' ? 'View details' : getEventStatusLabel(event.status)}
-          </Typography>
+        <Box sx={{ px: 2, pb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+          <Chip
+            label={event.status === 'OPEN' ? 'View details' : getEventStatusLabel(event.status)}
+            size="small"
+            variant="outlined"
+            sx={{
+              borderColor: 'divider',
+              color: 'text.secondary',
+              fontWeight: 600,
+            }}
+          />
         </Box>
       </CardActionArea>
     </Card>

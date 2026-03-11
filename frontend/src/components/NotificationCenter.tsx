@@ -88,9 +88,9 @@ export const NotificationCenter: React.FC = () => {
 
   return (
     <>
-      <IconButton color="inherit" onClick={handleClick}>
+      <IconButton color="inherit" onClick={handleClick} sx={{ color: 'text.primary' }}>
         <Badge badgeContent={notifications.length} color="error">
-          <NotificationsIcon />
+          <NotificationsIcon sx={{ color: 'text.primary' }} />
         </Badge>
       </IconButton>
 
