@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -26,6 +28,7 @@ public class FeedbackController {
       @Valid @RequestBody FeedbackRequest request,
       Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
+    requireVolunteer(jwt);
     UUID volunteerId = UUID.fromString(jwt.getClaimAsString("userId"));
     String volunteerName = jwt.getClaimAsString("username");
 
@@ -62,5 +65,12 @@ public class FeedbackController {
         f.getComment(),
         f.getCreatedAt()
     );
+  }
+
+  private void requireVolunteer(Jwt jwt) {
+    String role = jwt.getClaimAsString("role");
+    if (!"VOLUNTEER".equals(role)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only volunteers can submit feedback");
+    }
   }
 }

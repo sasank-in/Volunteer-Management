@@ -2,10 +2,13 @@ package com.volunteer.eventservice.web;
 
 import com.volunteer.eventservice.domain.Participation;
 import com.volunteer.eventservice.service.ParticipationService;
+import com.volunteer.eventservice.service.EventService;
+import org.springframework.http.HttpStatus;
 import com.volunteer.eventservice.web.dto.ParticipationResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -15,14 +18,17 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/participations")
 public class ParticipationController {
   private final ParticipationService participationService;
+  private final EventService eventService;
 
-  public ParticipationController(ParticipationService participationService) {
+  public ParticipationController(ParticipationService participationService, EventService eventService) {
     this.participationService = participationService;
+    this.eventService = eventService;
   }
 
   @PostMapping("/events/{eventId}/register")
   public ParticipationResponse registerForEvent(@PathVariable("eventId") UUID eventId, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
+    requireVolunteer(jwt);
     UUID volunteerId = UUID.fromString(jwt.getClaimAsString("userId"));
     String volunteerName = jwt.getClaimAsString("username");
     String volunteerEmail = jwt.getClaimAsString("email");
@@ -42,14 +48,16 @@ public class ParticipationController {
   @PostMapping("/events/{eventId}/cancel")
   public Map<String, String> cancelParticipation(@PathVariable("eventId") UUID eventId, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
+    requireVolunteer(jwt);
     UUID volunteerId = UUID.fromString(jwt.getClaimAsString("userId"));
     participationService.cancelParticipation(eventId, volunteerId, jwt.getTokenValue());
     return Map.of("message", "Participation cancelled successfully");
   }
 
   @GetMapping("/events/{eventId}")
-  public List<ParticipationResponse> getEventParticipations(@PathVariable("eventId") UUID eventId) {
-    return participationService.getEventParticipations(eventId).stream()
+  public List<ParticipationResponse> getEventParticipations(@PathVariable("eventId") UUID eventId,
+      Authentication authentication) {
+    return getAuthorizedEventParticipations(eventId, authentication).stream()
         .map(this::toResponse)
         .collect(Collectors.toList());
   }
@@ -69,20 +77,26 @@ public class ParticipationController {
   }
 
   @GetMapping("/events/{eventId}/participants")
-  public List<ParticipationResponse> getEventParticipants(@PathVariable("eventId") UUID eventId) {
-    return getEventParticipations(eventId);
+  public List<ParticipationResponse> getEventParticipants(@PathVariable("eventId") UUID eventId,
+      Authentication authentication) {
+    return getEventParticipations(eventId, authentication);
   }
 
   @PutMapping("/{participationId}/mark-attended")
-  public ParticipationResponse markAttended(@PathVariable("participationId") UUID participationId) {
-    Participation participation = participationService.markAttended(participationId);
-    return toResponse(participation);
+  public ParticipationResponse markAttended(@PathVariable("participationId") UUID participationId,
+      Authentication authentication) {
+    Participation participation = participationService.getParticipationById(participationId);
+    requireOrganizerOrAdminForEvent(participation.getEventId(), authentication);
+    Participation updated = participationService.markAttended(participationId);
+    return toResponse(updated);
   }
 
   @PutMapping("/events/{eventId}/volunteers/{volunteerId}/attendance")
   public Map<String, String> markAttendance(@PathVariable("eventId") UUID eventId,
       @PathVariable("volunteerId") UUID volunteerId,
-      @RequestParam boolean attended) {
+      @RequestParam boolean attended,
+      Authentication authentication) {
+    requireOrganizerOrAdminForEvent(eventId, authentication);
     participationService.markAttendance(eventId, volunteerId, attended);
     return Map.of("message", "Attendance marked successfully");
   }
@@ -90,7 +104,9 @@ public class ParticipationController {
   @PutMapping("/events/{eventId}/volunteers/{volunteerId}/role")
   public Map<String, String> updateRole(@PathVariable("eventId") UUID eventId,
       @PathVariable("volunteerId") UUID volunteerId,
-      @RequestParam String role) {
+      @RequestParam String role,
+      Authentication authentication) {
+    requireOrganizerOrAdminForEvent(eventId, authentication);
     participationService.updateRole(eventId, volunteerId, role);
     return Map.of("message", "Role updated successfully");
   }
@@ -106,5 +122,36 @@ public class ParticipationController {
         p.getRolePlayed(),
         p.getRegisteredAt()
     );
+  }
+
+  private List<Participation> getAuthorizedEventParticipations(UUID eventId, Authentication authentication) {
+    Jwt jwt = (Jwt) authentication.getPrincipal();
+    String role = jwt.getClaimAsString("role");
+    if ("ADMIN".equals(role)) {
+      return participationService.getEventParticipations(eventId);
+    }
+
+    if (!"ORGANIZER".equals(role)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized to view participants");
+    }
+
+    UUID requesterId = UUID.fromString(jwt.getClaimAsString("userId"));
+    UUID organizerId = eventService.getEventById(eventId).getOrganizerId();
+    if (!requesterId.equals(organizerId)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized to view participants");
+    }
+
+    return participationService.getEventParticipations(eventId);
+  }
+
+  private void requireOrganizerOrAdminForEvent(UUID eventId, Authentication authentication) {
+    getAuthorizedEventParticipations(eventId, authentication);
+  }
+
+  private void requireVolunteer(Jwt jwt) {
+    String role = jwt.getClaimAsString("role");
+    if (!"VOLUNTEER".equals(role)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only volunteers can perform this action");
+    }
   }
 }

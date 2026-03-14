@@ -1,5 +1,30 @@
 import React, { useState } from 'react';
-import { Box, Container, Grid, Paper, Typography, Card, CardContent, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Tab, Tabs, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import {
+  Box,
+  Container,
+  Grid,
+  Paper,
+  Typography,
+  Card,
+  CardContent,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  Tab,
+  Tabs,
+  Select,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress,
+} from '@mui/material';
 import { People, Event, CheckCircle, TrendingUp } from '@mui/icons-material';
 import apiService from '@services/api';
 import type { UserAccount, Event as EventType } from '../../types';
@@ -130,133 +155,156 @@ const AdminDashboard = () => {
         )}
 
         {(usersLoading || eventsLoading) && !(usersError || eventsError) && (
-          <Paper sx={{ p: 3, mb: 4 }}>
+          <Paper sx={{ p: 3, mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <CircularProgress size={20} />
             <Typography variant="body2" color="text.secondary">
               Loading admin data...
             </Typography>
           </Paper>
         )}
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: stat.color, color: 'white', mr: 2 }}>
-                      <Icon />
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <Grid item xs={12} sm={6} md={3} key={index}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: stat.color, color: 'white', mr: 2 }}>
+                        <Icon />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">{stat.title}</Typography>
                     </Box>
-                    <Typography variant="body2" color="text.secondary">{stat.title}</Typography>
-                  </Box>
-                  <Typography variant="h3" sx={{ fontWeight: 700 }}>{stat.value}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
+                    <Typography variant="h3" sx={{ fontWeight: 700 }}>{stat.value}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
 
-      <Paper>
-        <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
-          <Tab label="Users" />
-          <Tab label="Events" />
-        </Tabs>
+        <Paper>
+          <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
+            <Tab label="Users" />
+            <Tab label="Events" />
+          </Tabs>
 
         {tabValue === 0 && (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Username</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                  <TableCell>Joined</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {users.map(u => (
-                  <TableRow key={u.id}>
-                    <TableCell>{u.username}</TableCell>
-                    <TableCell>{u.email}</TableCell>
-                    <TableCell>
-                      <Select
-                        size="small"
-                        value={u.role}
-                        onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                        disabled={actionUserId === u.id}
-                      >
-                        <MenuItem value="VOLUNTEER">VOLUNTEER</MenuItem>
-                        <MenuItem value="ORGANIZER">ORGANIZER</MenuItem>
-                        <MenuItem value="ADMIN">ADMIN</MenuItem>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={isActiveUser(u) ? 'ACTIVE' : 'INACTIVE'}
-                        size="small"
-                        color={isActiveUser(u) ? 'success' : 'default'}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() =>
-                            handleStatusToggle(u.id, isActiveUser(u) ? 'INACTIVE' : 'ACTIVE')
-                          }
-                          disabled={actionUserId === u.id}
-                        >
-                          {isActiveUser(u) ? 'Deactivate' : 'Activate'}
-                        </Button>
-                        <Button
-                          size="small"
-                          color="error"
-                          variant="outlined"
-                          onClick={() => setDeleteTarget(u)}
-                          disabled={actionUserId === u.id}
-                        >
-                          Delete
-                        </Button>
-                      </Box>
-                    </TableCell>
-                    <TableCell>{new Date(u.createdAt).toLocaleDateString()}</TableCell>
+          users.length === 0 && !usersLoading ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                No users found
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Users will appear here once they register.
+              </Typography>
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Username</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Role</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                    <TableCell>Joined</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {users.map(u => (
+                    <TableRow key={u.id}>
+                      <TableCell>{u.username}</TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell>
+                        <Select
+                          size="small"
+                          value={u.role}
+                          onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                          disabled={actionUserId === u.id}
+                        >
+                          <MenuItem value="VOLUNTEER">VOLUNTEER</MenuItem>
+                          <MenuItem value="ORGANIZER">ORGANIZER</MenuItem>
+                          <MenuItem value="ADMIN">ADMIN</MenuItem>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={isActiveUser(u) ? 'ACTIVE' : 'INACTIVE'}
+                          size="small"
+                          color={isActiveUser(u) ? 'success' : 'default'}
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() =>
+                              handleStatusToggle(u.id, isActiveUser(u) ? 'INACTIVE' : 'ACTIVE')
+                            }
+                            disabled={actionUserId === u.id}
+                          >
+                            {isActiveUser(u) ? 'Deactivate' : 'Activate'}
+                          </Button>
+                          <Button
+                            size="small"
+                            color="error"
+                            variant="outlined"
+                            onClick={() => setDeleteTarget(u)}
+                            disabled={actionUserId === u.id}
+                          >
+                            Delete
+                          </Button>
+                        </Box>
+                      </TableCell>
+                      <TableCell>{new Date(u.createdAt).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )
         )}
 
         {tabValue === 1 && (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Title</TableCell>
-                  <TableCell>Organizer</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Status</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {events.map(e => (
-                  <TableRow key={e.id}>
-                    <TableCell>{e.title}</TableCell>
-                    <TableCell>{e.organizerName}</TableCell>
-                    <TableCell>{new Date(e.eventDate).toLocaleDateString()}</TableCell>
-                    <TableCell><Chip label={e.status} size="small" color={e.status === 'OPEN' ? 'success' : 'default'} /></TableCell>
+          events.length === 0 && !eventsLoading ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                No events found
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Events will appear here once organizers create them.
+              </Typography>
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Organizer</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Status</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {events.map(e => (
+                    <TableRow key={e.id}>
+                      <TableCell>{e.title}</TableCell>
+                      <TableCell>{e.organizerName}</TableCell>
+                      <TableCell>{new Date(e.eventDate).toLocaleDateString()}</TableCell>
+                      <TableCell><Chip label={e.status} size="small" color={e.status === 'OPEN' ? 'success' : 'default'} /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )
         )}
-      </Paper>
+        </Paper>
 
       <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
         <DialogTitle>Delete User</DialogTitle>

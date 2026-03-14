@@ -280,9 +280,16 @@ const LoginPage: React.FC = () => {
             </Divider>
 
             {/* Demo Credentials */}
-            <Box>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                bgcolor: 'action.hover',
+              }}
+            >
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, fontWeight: 600 }}>
-                Demo Credentials:
+                Demo Credentials
               </Typography>
               <Stack spacing={1}>
                 {demoCredentials.map((cred, index) => (
@@ -300,6 +307,7 @@ const LoginPage: React.FC = () => {
                       fontWeight: 600,
                       py: 1,
                       borderRadius: 2,
+                      bgcolor: 'background.paper',
                     }}
                   >
                     <Chip
@@ -314,7 +322,7 @@ const LoginPage: React.FC = () => {
                   </Button>
                 ))}
               </Stack>
-            </Box>
+            </Paper>
 
             {/* Register Link */}
             <Box sx={{ textAlign: 'center', mt: 2 }}>

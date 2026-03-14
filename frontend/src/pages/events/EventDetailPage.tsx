@@ -76,7 +76,7 @@ const EventDetailPage: React.FC = () => {
   const { data: participants = [] } = useQuery({
     queryKey: ['event-participants', eventId],
     queryFn: () => apiService.getEventParticipants(eventId!),
-    enabled: !!eventId && user?.role === 'ORGANIZER',
+    enabled: !!eventId && (user?.role === 'ORGANIZER' || user?.role === 'ADMIN'),
   });
 
   // Fetch current user's participation
@@ -201,6 +201,10 @@ const EventDetailPage: React.FC = () => {
 
   const isOrganizer = user?.id === event.organizerId;
   const isAdmin = user?.role === 'ADMIN';
+  const remainingVolunteers = Math.max(
+    event.requiredVolunteers - event.registeredVolunteers,
+    0
+  );
   const myParticipation = myParticipations.find(
     (p) => p.eventId === event.id && p.status !== 'CANCELLED'
   );
@@ -238,16 +242,16 @@ const EventDetailPage: React.FC = () => {
                     </Typography>
                     <Typography variant="body1">by {event.organizerName}</Typography>
                   </Box>
-                  <Box
+                  <Chip
+                    label={getEventStatusLabel(event.status)}
+                    size="small"
                     sx={{
-                      px: 2,
-                      py: 1,
-                      borderRadius: 1,
                       bgcolor: getEventStatusColor(event.status),
+                      color: 'white',
+                      fontWeight: 700,
+                      px: 1,
                     }}
-                  >
-                    {getEventStatusLabel(event.status)}
-                  </Box>
+                  />
                 </Box>
               </Box>
 
@@ -326,7 +330,9 @@ const EventDetailPage: React.FC = () => {
                     />
                   </Box>
                   <Typography variant="caption" color="text.secondary">
-                    {event.requiredVolunteers - event.registeredVolunteers} more volunteers needed
+                    {remainingVolunteers === 0
+                      ? 'Volunteer goal reached'
+                      : `${remainingVolunteers} more volunteers needed`}
                   </Typography>
                 </Box>
               </CardContent>
@@ -365,7 +371,7 @@ const EventDetailPage: React.FC = () => {
               </Card>
             )}
 
-            {isOrganizer && (
+            {(isOrganizer || isAdmin) && (
               <Card sx={{ mb: 3 }}>
                 <CardContent>
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>

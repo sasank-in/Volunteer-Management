@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,6 +27,7 @@ public class EventController {
   @PostMapping
   public EventResponse createEvent(@Valid @RequestBody CreateEventRequest request, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
+    requireOrganizerOrAdmin(jwt);
     UUID organizerId = UUID.fromString(jwt.getClaimAsString("userId"));
     String organizerName = jwt.getClaimAsString("username");
     String organizerEmail = jwt.getClaimAsString("email");
@@ -53,6 +56,7 @@ public class EventController {
   @GetMapping("/organizer/my-events")
   public List<EventResponse> getMyEvents(Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
+    requireOrganizerOrAdmin(jwt);
     UUID organizerId = UUID.fromString(jwt.getClaimAsString("userId"));
     List<Event> events = eventService.getEventsByOrganizer(organizerId);
     return events.stream().map(this::toResponse).collect(Collectors.toList());
@@ -62,7 +66,7 @@ public class EventController {
   public EventResponse updateEvent(@PathVariable("id") UUID id, @Valid @RequestBody UpdateEventRequest request,
       Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
-    UUID organizerId = UUID.fromString(jwt.getClaimAsString("userId"));
+    UUID organizerId = resolveOrganizerIdForUpdate(jwt, id);
     Event event = eventService.updateEvent(id, request, organizerId, jwt.getTokenValue());
     return toResponse(event);
   }
@@ -70,7 +74,7 @@ public class EventController {
   @DeleteMapping("/{id}")
   public void deleteEvent(@PathVariable("id") UUID id, Authentication authentication) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
-    UUID organizerId = UUID.fromString(jwt.getClaimAsString("userId"));
+    UUID organizerId = resolveOrganizerIdForUpdate(jwt, id);
     eventService.deleteEvent(id, organizerId, jwt.getTokenValue());
   }
 
@@ -92,5 +96,23 @@ public class EventController {
     Double avgRating = eventService.getAverageRating(event.getId());
     response.setAverageRating(avgRating);
     return response;
+  }
+
+  private void requireOrganizerOrAdmin(Jwt jwt) {
+    String role = jwt.getClaimAsString("role");
+    if (!"ORGANIZER".equals(role) && !"ADMIN".equals(role)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only organizers or admins can perform this action");
+    }
+  }
+
+  private UUID resolveOrganizerIdForUpdate(Jwt jwt, UUID eventId) {
+    String role = jwt.getClaimAsString("role");
+    if ("ADMIN".equals(role)) {
+      return eventService.getEventById(eventId).getOrganizerId();
+    }
+    if (!"ORGANIZER".equals(role)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only organizers or admins can perform this action");
+    }
+    return UUID.fromString(jwt.getClaimAsString("userId"));
   }
 }

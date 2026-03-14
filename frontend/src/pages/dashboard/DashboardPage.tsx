@@ -18,6 +18,8 @@ import {
   Star as StarIcon,
   TrendingUp as TrendingUpIcon,
   Add as AddIcon,
+  LocationOn as LocationOnIcon,
+  DateRange as DateRangeIcon,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -116,7 +118,7 @@ const DashboardPage: React.FC = () => {
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-            Welcome back, {user?.username}! 👋
+            Welcome back, {user?.username}!
           </Typography>
           <Typography variant="body1" color="text.secondary">
             {user?.role === 'ORGANIZER'
@@ -218,38 +220,38 @@ const DashboardPage: React.FC = () => {
                     }}
                   >
                     <CardActionArea onClick={() => navigate(`/events/${event.id}`)} sx={{ height: '100%' }}>
-                    {/* Status Badge */}
-                    <Box
-                      sx={{
-                        px: 2,
-                        pt: 2,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'start',
-                      }}
-                    >
+                      {/* Status Badge */}
                       <Box
                         sx={{
                           px: 2,
-                          py: 0.5,
-                          borderRadius: 1,
-                          bgcolor: getEventStatusColor(event.status),
-                          color: 'white',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
+                          pt: 2,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'start',
                         }}
                       >
-                        {getEventStatusLabel(event.status)}
-                      </Box>
-                      {event.averageRating && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <StarIcon sx={{ fontSize: '1rem', color: '#f59e0b' }} />
-                          <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                            {event.averageRating.toFixed(1)}
-                          </Typography>
+                        <Box
+                          sx={{
+                            px: 2,
+                            py: 0.5,
+                            borderRadius: 1,
+                            bgcolor: getEventStatusColor(event.status),
+                            color: 'white',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {getEventStatusLabel(event.status)}
                         </Box>
-                      )}
-                    </Box>
+                        {event.averageRating && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <StarIcon sx={{ fontSize: '1rem', color: '#f59e0b' }} />
+                            <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                              {event.averageRating.toFixed(1)}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
 
                     <CardContent sx={{ flex: 1 }}>
                       <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
@@ -258,12 +260,18 @@ const DashboardPage: React.FC = () => {
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         {truncateText(event.description, 110)}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        📍 {event.location}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        📅 {formatDate(event.eventDate)}
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <LocationOnIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
+                        <Typography variant="caption" color="text.secondary">
+                          {event.location}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <DateRangeIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDate(event.eventDate)}
+                        </Typography>
+                      </Box>
                     </CardContent>
 
                     {/* Progress Bar */}

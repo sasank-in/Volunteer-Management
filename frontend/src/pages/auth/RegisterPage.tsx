@@ -11,6 +11,8 @@ import {
   CircularProgress,
   InputAdornment,
   IconButton,
+  Divider,
+  Stack,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -19,6 +21,7 @@ import {
   Phone as PhoneIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
+  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import apiService from '@services/api';
@@ -133,16 +136,60 @@ const RegisterPage: React.FC = () => {
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         py: 4,
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
-      <Container maxWidth="sm">
-        <Paper elevation={24} sx={{ p: 4, borderRadius: 2 }}>
+      {/* Background glow */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: -120,
+          left: -120,
+          width: 360,
+          height: 360,
+          borderRadius: '50%',
+          background: 'rgba(255, 255, 255, 0.08)',
+          filter: 'blur(40px)',
+        }}
+      />
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: -80,
+          right: -80,
+          width: 320,
+          height: 320,
+          borderRadius: '50%',
+          background: 'rgba(255, 255, 255, 0.05)',
+          filter: 'blur(40px)',
+        }}
+      />
+
+      <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
+        <Paper elevation={24} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3 }}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate('/landing')}
+            sx={{
+              mb: 3,
+              textTransform: 'none',
+              fontWeight: 600,
+              color: 'text.secondary',
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
+            }}
+          >
+            Back to Home
+          </Button>
+
           {/* Header */}
           <Box sx={{ mb: 4, textAlign: 'center' }}>
             <Typography
               variant="h4"
               sx={{
-                fontWeight: 700,
+                fontWeight: 800,
                 mb: 1,
                 background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
                 backgroundClip: 'text',
@@ -163,7 +210,7 @@ const RegisterPage: React.FC = () => {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleRegister} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box component="form" onSubmit={handleRegister} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             {/* Username Input */}
             <TextField
               fullWidth
@@ -180,6 +227,7 @@ const RegisterPage: React.FC = () => {
                   </InputAdornment>
                 ),
               }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
 
             {/* Email Input */}
@@ -199,6 +247,7 @@ const RegisterPage: React.FC = () => {
                   </InputAdornment>
                 ),
               }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
 
             {/* Phone Input */}
@@ -217,6 +266,7 @@ const RegisterPage: React.FC = () => {
                   </InputAdornment>
                 ),
               }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
 
             {/* Password Input */}
@@ -248,6 +298,7 @@ const RegisterPage: React.FC = () => {
                   </InputAdornment>
                 ),
               }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
 
             {/* Confirm Password Input */}
@@ -278,6 +329,7 @@ const RegisterPage: React.FC = () => {
                   </InputAdornment>
                 ),
               }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
 
             {/* Register Button */}
@@ -291,13 +343,25 @@ const RegisterPage: React.FC = () => {
                 mt: 2,
                 height: 48,
                 fontSize: '1rem',
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 12px 24px rgba(59, 130, 246, 0.3)',
+                },
               }}
             >
               {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
             </Button>
 
+            <Divider sx={{ my: 2 }}>
+              <Typography variant="caption" color="text.secondary">
+                Already with us?
+              </Typography>
+            </Divider>
+
             {/* Login Link */}
-            <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Stack direction="row" justifyContent="center">
               <Typography variant="body2" color="text.secondary">
                 Already have an account?{' '}
                 <Link
@@ -306,13 +370,13 @@ const RegisterPage: React.FC = () => {
                   underline="hover"
                   sx={{
                     color: 'primary.main',
-                    fontWeight: 600,
+                    fontWeight: 700,
                   }}
                 >
                   Sign in
                 </Link>
               </Typography>
-            </Box>
+            </Stack>
           </Box>
         </Paper>
       </Container>

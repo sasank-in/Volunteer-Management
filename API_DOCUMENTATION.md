@@ -450,3 +450,133 @@ Content-Type: application/json
 - `VOLUNTEER`: Regular volunteer user
 - `ORGANIZER`: Can create and manage events
 - `ADMIN`: Full system access
+
+---
+
+## Sample Test Bodies (Postman/HTTP)
+
+Use these sample JSON bodies when testing endpoints that accept a request body. For endpoints without a body, send an empty body.
+
+### Auth
+**POST /api/auth/register**
+```json
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "SecurePass123!",
+  "phoneNumber": "+1234567890"
+}
+```
+
+**POST /api/auth/login**
+```json
+{
+  "email": "john@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+**POST /api/auth/refresh**
+```json
+{
+  "refreshToken": "eyJhbGc..."
+}
+```
+
+**POST /api/auth/logout**
+```json
+{
+  "refreshToken": "eyJhbGc..."
+}
+```
+
+**POST /api/auth/change-password**
+```json
+{
+  "currentPassword": "OldPass123!",
+  "newPassword": "NewPass123!"
+}
+```
+
+### Events
+**POST /api/events**
+```json
+{
+  "title": "Community Cleanup Drive",
+  "description": "Join us for a neighborhood cleanup",
+  "location": "Central Park, Main Street",
+  "eventDate": "2024-12-25T10:00:00",
+  "requiredVolunteers": 20
+}
+```
+
+**PUT /api/events/{eventId}**
+```json
+{
+  "title": "Updated Title",
+  "description": "Updated description",
+  "location": "Updated location",
+  "eventDate": "2024-12-26T12:00:00",
+  "requiredVolunteers": 25,
+  "status": "OPEN"
+}
+```
+
+### Participations
+**POST /api/participations/events/{eventId}/register**
+```json
+{}
+```
+
+**POST /api/participations/events/{eventId}/cancel**
+```json
+{}
+```
+
+**PUT /api/participations/events/{eventId}/volunteers/{volunteerId}/attendance?attended=true**
+```json
+{}
+```
+
+**PUT /api/participations/events/{eventId}/volunteers/{volunteerId}/role?role=Team%20Leader**
+```json
+{}
+```
+
+**PUT /api/participations/{participationId}/mark-attended**
+```json
+{}
+```
+
+### Feedback
+**POST /api/feedbacks/events/{eventId}**
+```json
+{
+  "rating": 5,
+  "comment": "Great event! Well organized."
+}
+```
+
+### Notifications
+**POST /api/notifications**
+```json
+{
+  "recipientId": "uuid",
+  "recipientEmail": "john@example.com",
+  "type": "EVENT_REMINDER",
+  "subject": "Event Reminder",
+  "message": "Your event starts tomorrow!",
+  "eventId": "uuid"
+}
+```
+
+### Users
+**PUT /api/users/{userId}**
+```json
+{
+  "username": "new_username",
+  "email": "newemail@example.com",
+  "phoneNumber": "+9876543210",
+  "role": "ORGANIZER"
+}
+```

@@ -94,6 +94,11 @@ public class ParticipationService {
     return participationRepository.findByVolunteerId(volunteerId);
   }
 
+  public Participation getParticipationById(UUID participationId) {
+    return participationRepository.findById(participationId)
+        .orElseThrow(() -> new IllegalArgumentException("Participation not found"));
+  }
+
   @Transactional
   public void markAttendance(UUID eventId, UUID volunteerId, boolean attended) {
     Participation participation = participationRepository.findByEventIdAndVolunteerId(eventId, volunteerId)
