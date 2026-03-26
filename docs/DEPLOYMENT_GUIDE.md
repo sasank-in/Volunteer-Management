@@ -84,6 +84,8 @@ MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-password
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS_ENABLE=true
 ```
 
 **Important**: Generate a new JWT secret for production:
@@ -225,6 +227,8 @@ curl -X POST http://localhost:8080/api/events \
 ```env
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-16-char-app-password
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS_ENABLE=true
 ```
 
 ### Other SMTP Providers
@@ -235,6 +239,8 @@ MAIL_HOST=smtp.your-provider.com
 MAIL_PORT=587
 MAIL_USERNAME=your-username
 MAIL_PASSWORD=your-password
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS_ENABLE=true
 ```
 
 ## Production Deployment

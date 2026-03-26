@@ -14,12 +14,12 @@ public class MailConfig {
   @Bean
   @Primary
   public JavaMailSender javaMailSender(
-      @Value("${spring.mail.host:smtp.gmail.com}") String host,
-      @Value("${spring.mail.port:587}") int port,
+      @Value("${spring.mail.host}") String host,
+      @Value("${spring.mail.port}") int port,
       @Value("${spring.mail.username:}") String username,
       @Value("${spring.mail.password:}") String password,
-      @Value("${spring.mail.properties.mail.smtp.auth:true}") boolean smtpAuth,
-      @Value("${spring.mail.properties.mail.smtp.starttls.enable:true}") boolean startTls) {
+      @Value("${spring.mail.properties.mail.smtp.auth}") boolean smtpAuth,
+      @Value("${spring.mail.properties.mail.smtp.starttls.enable}") boolean startTls) {
     JavaMailSenderImpl sender = new JavaMailSenderImpl();
     sender.setHost(host);
     sender.setPort(port);

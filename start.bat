@@ -4,7 +4,7 @@ cd backend
 echo starting...
 
 start "Config Server" cmd /k ".\mvnw.cmd -pl config-server spring-boot:run"
-timeout /t 10 /nobreak >nul
+timeout /t 17 /nobreak >nul
 
 start "Discovery Server" cmd /k ".\mvnw.cmd -pl discovery-server spring-boot:run"
 timeout /t 5 /nobreak >nul
