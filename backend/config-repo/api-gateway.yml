@@ -1,0 +1,81 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:3001"
+              - "http://localhost:5173"
+              - "http://127.0.0.1:3000"
+              - "http://127.0.0.1:3001"
+              - "http://127.0.0.1:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: '*'
+            allow-credentials: true
+            max-age: 3600
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/users/**,/api/auth/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html
+        - id: event-service
+          uri: lb://EVENT-SERVICE
+          predicates:
+            - Path=/api/events/**,/api/participations/**,/api/feedbacks/**
+        - id: notification-service
+          uri: lb://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/api/notifications/**
+  cache:
+    type: simple
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+
+resilience4j:
+  ratelimiter:
+    instances:
+      auth-service:
+        register-health-indicator: true
+        limit-for-period: 50
+        limit-refresh-period: 1m
+        timeout-duration: 100ms
+      event-service:
+        register-health-indicator: true
+        limit-for-period: 100
+        limit-refresh-period: 1m
+        timeout-duration: 100ms
+      api-gateway:
+        register-health-indicator: true
+        limit-for-period: 500
+        limit-refresh-period: 1m
+        timeout-duration: 100ms
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
