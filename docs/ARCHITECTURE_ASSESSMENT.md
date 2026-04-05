@@ -11,7 +11,7 @@
 Your microservices architecture is **well-designed, follows Spring best practices, and demonstrates production-grade engineering**. No architectural flaws or structural redesigns are necessary. The system is ready for deployment and scaling.
 
 ### Quick Metrics
-- **Services:** 6 (Config, Discovery, API Gateway, User, Event, Notification)
+- **Services:** 5 (Discovery, API Gateway, User, Event, Notification)
 - **Architecture Pattern:** Spring Cloud Microservices
 - **Code Quality:** High (proper layering, separation of concerns)
 - **Security:** Strong (JWT, BCrypt, token management)
@@ -39,10 +39,9 @@ Your microservices architecture is **well-designed, follows Spring best practice
    (volatile)    (participation)  (logs)
 
 Infrastructure Services:
-- Config Server (8888) → Centralized configuration
 - Discovery Server (8761) → Eureka service registry
 - All services register with Eureka
-- All services fetch config from Config Server
+- All services use local configuration plus environment variables
 ```
 
 ### Architecture Properties ✅
@@ -55,7 +54,7 @@ Infrastructure Services:
 | **Independently Deployable** | ✅ Yes | Each service has its own DB & config |
 | **Scalability** | ✅ Ready | Load balancer (lb://) routing in place |
 | **Service Registry** | ✅ Implemented | Eureka discovery working |
-| **Centralized Config** | ✅ Implemented | Spring Cloud Config Server |
+| **Configuration Management** | ✅ Implemented | Per-service config with environment overrides |
 
 ---
 
@@ -312,30 +311,30 @@ Rate Limiters:
 
 ---
 
-### 2.5 Config Server (8888) - Centralized Configuration ✅
+### 2.5 Configuration Strategy - Local Service Config ✅
 
-**Status:** ✅ Properly configured
+**Status:** ✅ Simplified and self-contained
 
 #### Configuration Files
-```
-config-repo/
-  ├─ api-gateway.yml
-  ├─ discovery-server.yml
-  ├─ event-service.yml
-  ├─ notification-service.yml
-  ├─ user-service.yml
+``` 
+backend/
+  ├─ api-gateway/src/main/resources/application.yml
+  ├─ discovery-server/src/main/resources/application.yml
+  ├─ event-service/src/main/resources/application.yml
+  ├─ notification-service/src/main/resources/application.yml
+  └─ user-service/src/main/resources/application.yml
 ```
 
 #### Features
-- Native file-based configuration
+- Per-service local configuration
 - Environment variable overrides
-- Per-service configurations
+- Simpler startup sequence
 - Dynamic property binding
 
 #### Assessment
-- ✅ Centralized management
+- ✅ Easier local development
 - ✅ Environment-aware
-- ✅ Spring Cloud native
+- ✅ Less operational overhead
 
 ---
 
@@ -487,12 +486,11 @@ public class ApiExceptionHandler {
 
 ### Startup Sequence
 ```
-1. Config Server (8888) - 15s wait
-2. Discovery Server (8761) - 15s wait
-3. User Service (8081) - 5s wait
-4. Event Service (8082) - 5s wait
-5. Notification Service (8083) - 5s wait
-6. API Gateway (8080) - waits for services
+1. Discovery Server (8761) - 10s wait
+2. User Service (8081) - 5s wait
+3. Event Service (8082) - 5s wait
+4. Notification Service (8083) - 5s wait
+5. API Gateway (8080) - waits for services
 ```
 
 ### Scripts ✅
@@ -540,7 +538,7 @@ Controller → Service → Repository → Database
 - Distributed caching
 
 ### ✅ 6. Operational Excellence
-- Centralized configuration (Spring Cloud Config)
+- Service-local configuration with environment overrides
 - Service discovery (Eureka)
 - Health checks
 - Graceful shutdown

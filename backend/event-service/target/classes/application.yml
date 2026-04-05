@@ -5,10 +5,7 @@ spring:
   application:
     name: event-service
   config:
-    import: "configserver:http://localhost:8888,optional:file:.env[.properties],optional:file:../../.env[.properties]"
-  cloud:
-    config:
-      fail-fast: true
+    import: "optional:file:.env[.properties],optional:file:../../.env[.properties]"
   datasource:
     url: ${EVENT_DB_URL}
     username: ${DB_USER}
@@ -21,6 +18,14 @@ spring:
     enabled: true
   cache:
     type: simple
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
 
 security:
   jwt:
@@ -65,3 +70,7 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

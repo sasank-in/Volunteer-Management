@@ -7,7 +7,6 @@ A microservices-based platform for managing volunteer events, participation trac
 ## Architecture
 
 ### Microservices
-- **Config Server** (8888): Centralized configuration management
 - **Discovery Server** (8761): Eureka service registry
 - **API Gateway** (8080): Single entry point with rate limiting & caching
 - **User Service** (8081): Authentication and user management with JWT
@@ -75,10 +74,8 @@ start.bat
 cd backend
 
 # Start services in order
-./mvnw -pl config-server spring-boot:run &
-sleep 15
 ./mvnw -pl discovery-server spring-boot:run &
-sleep 15
+sleep 10
 ./mvnw -pl user-service spring-boot:run &
 ./mvnw -pl event-service spring-boot:run &
 ./mvnw -pl notification-service spring-boot:run &
@@ -138,8 +135,6 @@ For complete API documentation, visit Swagger UI at http://localhost:8081/swagge
 
 ```
 ├── backend/
-│   ├── config-server/            # Configuration server
-│   ├── config-repo/              # Configuration files
 │   ├── discovery-server/         # Eureka service registry
 │   ├── api-gateway/              # API Gateway
 │   ├── user-service/             # User management & auth

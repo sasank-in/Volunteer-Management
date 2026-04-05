@@ -5,7 +5,20 @@ spring:
   application:
     name: discovery-server
   config:
-    import: "configserver:http://localhost:8888,optional:file:.env[.properties],optional:file:../../.env[.properties]"
-  cloud:
-    config:
-      fail-fast: true
+    import: "optional:file:.env[.properties],optional:file:../../.env[.properties]"
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

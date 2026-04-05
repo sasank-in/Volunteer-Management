@@ -11,7 +11,6 @@
   <description>Backend services parent (Spring Cloud BOM)</description>
 
   <modules>
-    <module>config-server</module>
     <module>discovery-server</module>
     <module>user-service</module>
     <module>event-service</module>

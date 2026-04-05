@@ -122,22 +122,19 @@ Start services in order, waiting ~10 seconds between each:
 ```bash
 cd backend
 
-# 1. Config Server
-./mvnw -pl config-server spring-boot:run
-
-# 2. Discovery Server (new terminal)
+# 1. Discovery Server (new terminal)
 ./mvnw -pl discovery-server spring-boot:run
 
-# 3. User Service (new terminal)
+# 2. User Service (new terminal)
 ./mvnw -pl user-service spring-boot:run
 
-# 4. Event Service (new terminal)
+# 3. Event Service (new terminal)
 ./mvnw -pl event-service spring-boot:run
 
-# 5. Notification Service (new terminal)
+# 4. Notification Service (new terminal)
 ./mvnw -pl notification-service spring-boot:run
 
-# 6. API Gateway (new terminal)
+# 5. API Gateway (new terminal)
 ./mvnw -pl api-gateway spring-boot:run
 ```
 
@@ -150,8 +147,6 @@ cd backend
 ./mvnw clean package -DskipTests
 
 # Run services
-java -jar config-server/target/config-server-0.1.0-SNAPSHOT.jar &
-sleep 10
 java -jar discovery-server/target/discovery-server-0.1.0-SNAPSHOT.jar &
 sleep 10
 java -jar user-service/target/user-service-0.1.0-SNAPSHOT.jar &
@@ -164,12 +159,11 @@ java -jar api-gateway/target/api-gateway-0.1.0-SNAPSHOT.jar &
 
 Check that all services are running:
 
-1. **Config Server**: http://localhost:8888/actuator/health
-2. **Discovery Server**: http://localhost:8761
-3. **User Service**: http://localhost:8081/actuator/health
-4. **Event Service**: http://localhost:8082/actuator/health
-5. **Notification Service**: http://localhost:8083/actuator/health
-6. **API Gateway**: http://localhost:8080/actuator/health
+1. **Discovery Server**: http://localhost:8761
+2. **User Service**: http://localhost:8081/actuator/health
+3. **Event Service**: http://localhost:8082/actuator/health
+4. **Notification Service**: http://localhost:8083/actuator/health
+5. **API Gateway**: http://localhost:8080/actuator/health
 
 All should return `{"status":"UP"}`
 
@@ -247,27 +241,7 @@ MAIL_SMTP_STARTTLS_ENABLE=true
 
 ### Environment-Specific Configuration
 
-Create environment-specific config files in `backend/config-repo/`:
-
-**application-prod.yml**:
-```yaml
-spring:
-  datasource:
-    url: ${DB_URL}
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-
-logging:
-  level:
-    root: INFO
-    com.volunteer: INFO
-```
-
-Run with profile:
-```bash
-java -jar -Dspring.profiles.active=prod user-service.jar
-```
+Use each service's local `src/main/resources/application.yml` together with environment variables from `.env` or your deployment platform.
 
 ### Docker Deployment
 
@@ -305,19 +279,10 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./setup-databases.sql:/docker-entrypoint-initdb.d/setup.sql
 
-  config-server:
-    build: ./backend/config-server
-    ports:
-      - "8888:8888"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-
   discovery-server:
     build: ./backend/discovery-server
     ports:
       - "8761:8761"
-    depends_on:
-      - config-server
 
   user-service:
     build: ./backend/user-service
@@ -327,7 +292,6 @@ services:
       - .env
     depends_on:
       - postgres
-      - config-server
       - discovery-server
 
   event-service:
@@ -338,7 +302,6 @@ services:
       - .env
     depends_on:
       - postgres
-      - config-server
       - discovery-server
 
   notification-service:
@@ -349,7 +312,6 @@ services:
       - .env
     depends_on:
       - postgres
-      - config-server
       - discovery-server
 
   api-gateway:
@@ -357,7 +319,6 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - config-server
       - discovery-server
       - user-service
       - event-service
@@ -428,7 +389,6 @@ kubectl apply -f k8s/
 Monitor service health:
 ```bash
 # Check all services
-curl http://localhost:8888/actuator/health
 curl http://localhost:8761/actuator/health
 curl http://localhost:8081/actuator/health
 curl http://localhost:8082/actuator/health
@@ -485,7 +445,7 @@ netstat -ano | findstr :8081
 
 2. Check logs for errors
 3. Verify database connection
-4. Ensure Config Server is running first
+4. Ensure Discovery Server is running first
 
 ### Database Connection Issues
 

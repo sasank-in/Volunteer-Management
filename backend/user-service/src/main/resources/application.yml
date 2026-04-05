@@ -5,10 +5,7 @@ spring:
   application:
     name: user-service
   config:
-    import: "configserver:http://localhost:8888,optional:file:.env[.properties],optional:file:../../.env[.properties]"
-  cloud:
-    config:
-      fail-fast: true
+    import: "optional:file:.env[.properties],optional:file:../../.env[.properties]"
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}
@@ -20,9 +17,27 @@ spring:
   flyway:
     enabled: true
 
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+
 security:
   jwt:
     issuer: ${JWT_ISSUER:volunteer-user-service}
     secret: ${JWT_SECRET:}
     expires-in: ${JWT_EXPIRES_IN:3600}
     refresh-expires-in: ${JWT_REFRESH_EXPIRES_IN:604800}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
