@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   Container,
@@ -20,7 +19,6 @@ import {
 import { Event, People, Star, TrendingUp, Add } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiService from '@services/api';
-import type { Event as EventType } from '../../types';
 import { useQuery } from '@tanstack/react-query';
 import MainLayout from '@components/Layout';
 

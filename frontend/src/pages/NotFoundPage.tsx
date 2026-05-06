@@ -1,56 +1,38 @@
 import React from 'react';
-import { Box, Container, Typography, Button } from '@mui/material';
-import { Error as ErrorIcon } from '@mui/icons-material';
+import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 const NotFoundPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'background.default',
-      }}
-    >
-      <Container maxWidth="sm">
-        <Box sx={{ textAlign: 'center' }}>
-          <ErrorIcon
-            sx={{
-              fontSize: '120px',
-              color: 'error.main',
-              mb: 2,
-              opacity: 0.8,
-            }}
-          />
-
-          <Typography variant="h1" sx={{ fontWeight: 700, mb: 1, fontSize: '4rem' }}>
-            404
+    <Container maxWidth="sm">
+      <Box sx={{ minHeight: '70vh', display: 'flex', alignItems: 'center' }}>
+        <Stack spacing={2} sx={{ width: '100%' }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}
+          >
+            404 — Not found
           </Typography>
-
-          <Typography variant="h4" sx={{ fontWeight: 600, mb: 2 }}>
-            Page Not Found
+          <Typography variant="h2" sx={{ fontWeight: 700 }}>
+            We couldn&apos;t find that page.
           </Typography>
-
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-            Sorry, the page you're looking for doesn't exist or has been moved. Let's get you back
-            on track.
+          <Typography variant="body2" color="text.secondary">
+            The link may be broken or the page may have moved. Try heading back to your dashboard.
           </Typography>
-
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button variant="contained" size="large" onClick={() => navigate('/landing')}>
-              Back to Landing
+          <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+            <Button variant="contained" onClick={() => navigate('/dashboard')}>
+              Go to dashboard
             </Button>
-            <Button variant="outlined" size="large" onClick={() => navigate('/events')}>
-              Browse Events
+            <Button variant="outlined" onClick={() => navigate(-1)}>
+              Back
             </Button>
-          </Box>
-        </Box>
-      </Container>
-    </Box>
+          </Stack>
+        </Stack>
+      </Box>
+    </Container>
   );
 };
 

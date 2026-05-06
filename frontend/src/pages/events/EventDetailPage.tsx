@@ -43,6 +43,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@hooks/useAuth';
 import apiService from '@services/api';
 import MainLayout from '@components/Layout';
+import { useToast } from '@components/Toast';
 import { formatDate, calculateProgressPercentage, getEventStatusColor, getEventStatusLabel } from '@utils/helpers';
 import { CreateFeedbackRequest, UpdateEventRequest } from '../../types';
 
@@ -57,16 +58,16 @@ const EventDetailPage: React.FC = () => {
     rating: 5,
     comment: '',
   });
-  const [registrationMessage, setRegistrationMessage] = useState('');
-  const [notificationMessage, setNotificationMessage] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [editData, setEditData] = useState<UpdateEventRequest>({});
   const [editError, setEditError] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const showToast = useToast((s) => s.showToast);
 
   // Fetch event details
-  const { data: event, isLoading: eventLoading } = useQuery({
+  const { data: event, isLoading: eventLoading, isError: eventError, refetch: refetchEvent } = useQuery({
     queryKey: ['event', eventId],
     queryFn: () => apiService.getEventById(eventId!),
     enabled: !!eventId,
@@ -93,43 +94,47 @@ const EventDetailPage: React.FC = () => {
     enabled: !!eventId,
   });
 
-  // Register mutation
+  const invalidateAfterParticipationChange = () => {
+    queryClient.invalidateQueries({ queryKey: ['event', eventId] });
+    queryClient.invalidateQueries({ queryKey: ['event-participants', eventId] });
+    queryClient.invalidateQueries({ queryKey: ['my-participations'] });
+    queryClient.invalidateQueries({ queryKey: ['events'] });
+  };
+
   const registerMutation = useMutation({
     mutationFn: () => apiService.registerForEvent(eventId!),
     onSuccess: () => {
-      setRegistrationMessage('Successfully registered for event!');
-      setNotificationMessage('Notification queued for delivery.');
-      setTimeout(() => setRegistrationMessage(''), 3000);
-      setTimeout(() => setNotificationMessage(''), 3000);
-      queryClient.invalidateQueries({ queryKey: ['event', eventId] });
-      queryClient.invalidateQueries({ queryKey: ['event-participants', eventId] });
-      queryClient.invalidateQueries({ queryKey: ['my-participations'] });
-      queryClient.invalidateQueries({ queryKey: ['events'] });
+      showToast('You are registered for this event.', 'success');
+      invalidateAfterParticipationChange();
+    },
+    onError: (err: any) => {
+      showToast(err?.response?.data?.error ?? 'Could not register for event.', 'error');
     },
   });
 
-  // Cancel participation mutation
   const cancelMutation = useMutation({
     mutationFn: () => apiService.cancelParticipation(eventId!),
     onSuccess: () => {
-      setRegistrationMessage('Successfully cancelled registration.');
-      setNotificationMessage('Notification queued for delivery.');
-      setTimeout(() => setRegistrationMessage(''), 3000);
-      setTimeout(() => setNotificationMessage(''), 3000);
-      queryClient.invalidateQueries({ queryKey: ['event', eventId] });
-      queryClient.invalidateQueries({ queryKey: ['event-participants', eventId] });
-      queryClient.invalidateQueries({ queryKey: ['my-participations'] });
-      queryClient.invalidateQueries({ queryKey: ['events'] });
+      showToast('Registration cancelled.', 'success');
+      invalidateAfterParticipationChange();
+      setCancelConfirmOpen(false);
+    },
+    onError: (err: any) => {
+      showToast(err?.response?.data?.error ?? 'Could not cancel registration.', 'error');
+      setCancelConfirmOpen(false);
     },
   });
 
-  // Submit feedback mutation
   const feedbackMutation = useMutation({
     mutationFn: (data: CreateFeedbackRequest) => apiService.submitFeedback(eventId!, data),
     onSuccess: () => {
       setFeedbackOpen(false);
       setFeedbackData({ rating: 5, comment: '' });
       queryClient.invalidateQueries({ queryKey: ['event-feedbacks', eventId] });
+      showToast('Thanks for your feedback!', 'success');
+    },
+    onError: (err: any) => {
+      showToast(err?.response?.data?.error ?? 'Could not submit feedback.', 'error');
     },
   });
 
@@ -141,6 +146,7 @@ const EventDetailPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] });
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['event-participants', eventId] });
+      showToast('Event updated.', 'success');
     },
     onError: (err: any) => {
       setEditError(err.response?.data?.error || 'Failed to update event. Please try again.');
@@ -151,6 +157,10 @@ const EventDetailPage: React.FC = () => {
     mutationFn: (participationId: string) => apiService.markAttendance(participationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['event-participants', eventId] });
+      showToast('Attendance marked.', 'success');
+    },
+    onError: (err: any) => {
+      showToast(err?.response?.data?.error ?? 'Could not mark attendance.', 'error');
     },
   });
 
@@ -160,6 +170,7 @@ const EventDetailPage: React.FC = () => {
       setDeleteOpen(false);
       setDeleteError('');
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      showToast('Event deleted.', 'success');
       navigate('/events');
     },
     onError: (err: any) => {
@@ -173,6 +184,26 @@ const EventDetailPage: React.FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
           <CircularProgress />
         </Box>
+      </MainLayout>
+    );
+  }
+
+  if (eventError) {
+    return (
+      <MainLayout>
+        <Container maxWidth="lg">
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={() => refetchEvent()}>
+                Retry
+              </Button>
+            }
+            sx={{ mt: 4 }}
+          >
+            Could not load this event.
+          </Alert>
+        </Container>
       </MainLayout>
     );
   }
@@ -438,16 +469,6 @@ const EventDetailPage: React.FC = () => {
             {/* Action Card */}
             <Card sx={{ mb: 3, position: 'sticky', top: 80 }}>
               <CardContent>
-                {registrationMessage && (
-                  <Alert severity="success" sx={{ mb: 2 }}>
-                    {registrationMessage}
-                  </Alert>
-                )}
-                {notificationMessage && (
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    {notificationMessage}
-                  </Alert>
-                )}
                 {isAdmin && (
                   <Chip
                     label="Admin mode"
@@ -512,30 +533,49 @@ const EventDetailPage: React.FC = () => {
                       variant="outlined"
                       color="error"
                       startIcon={<CloseIcon />}
-                      onClick={() => cancelMutation.mutate()}
+                      onClick={() => setCancelConfirmOpen(true)}
                       disabled={cancelMutation.isPending || !canCancel}
                     >
                       {canCancel ? 'Cancel Registration' : 'Cannot Cancel'}
                     </Button>
                   </>
                 ) : (
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    size="large"
-                    disabled={
-                      event.status !== 'OPEN' ||
-                      registerMutation.isPending ||
-                      user?.role !== 'VOLUNTEER'
-                    }
-                    onClick={() => registerMutation.mutate()}
-                  >
-                    {user?.role !== 'VOLUNTEER'
-                      ? 'Registration not available'
-                      : event.status === 'OPEN'
-                        ? 'Register Now'
-                        : 'Event not available'}
-                  </Button>
+                  <>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      size="large"
+                      disabled={
+                        event.status !== 'OPEN' ||
+                        registerMutation.isPending ||
+                        user?.role !== 'VOLUNTEER'
+                      }
+                      onClick={() => registerMutation.mutate()}
+                    >
+                      {user?.role !== 'VOLUNTEER'
+                        ? 'Registration unavailable'
+                        : event.status === 'OPEN'
+                          ? 'Register Now'
+                          : event.status === 'FULL'
+                            ? 'Event is full'
+                            : event.status === 'COMPLETED'
+                              ? 'Event has ended'
+                              : event.status === 'CANCELLED'
+                                ? 'Event cancelled'
+                                : 'Event not available'}
+                    </Button>
+                    {user?.role === 'VOLUNTEER' && event.status !== 'OPEN' && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                        {event.status === 'FULL'
+                          ? 'All volunteer slots are filled. Check back if a slot opens.'
+                          : event.status === 'COMPLETED'
+                            ? 'This event already took place.'
+                            : event.status === 'CANCELLED'
+                              ? 'The organizer cancelled this event.'
+                              : null}
+                      </Typography>
+                    )}
+                  </>
                 )}
 
                 {myParticipation?.status === 'ATTENDED' && event.status === 'COMPLETED' && (
@@ -744,6 +784,34 @@ const EventDetailPage: React.FC = () => {
               disabled={deleteEventMutation.isPending}
             >
               {deleteEventMutation.isPending ? 'Deleting...' : 'Delete Event'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={cancelConfirmOpen}
+          onClose={() => setCancelConfirmOpen(false)}
+          maxWidth="xs"
+          fullWidth
+        >
+          <DialogTitle>Cancel registration?</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary">
+              Your slot will be released and given to other volunteers. You can register again later
+              if a slot is still available.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setCancelConfirmOpen(false)} disabled={cancelMutation.isPending}>
+              Keep registration
+            </Button>
+            <Button
+              color="error"
+              variant="contained"
+              onClick={() => cancelMutation.mutate()}
+              disabled={cancelMutation.isPending}
+            >
+              {cancelMutation.isPending ? 'Cancelling…' : 'Cancel registration'}
             </Button>
           </DialogActions>
         </Dialog>

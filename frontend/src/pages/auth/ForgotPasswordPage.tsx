@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
 import {
-  Box,
-  Container,
-  Paper,
-  Typography,
-  TextField,
-  Button,
   Alert,
+  Box,
+  Button,
   CircularProgress,
-  InputAdornment,
+  Link,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Email as EmailIcon } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import apiService from '@services/api';
+import AuthLayout from '@components/AuthLayout';
 
 const ForgotPasswordPage: React.FC = () => {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -29,7 +27,7 @@ const ForgotPasswordPage: React.FC = () => {
 
     try {
       await apiService.requestPasswordReset(email);
-      setSuccess('If an account exists for this email, a reset link has been sent.');
+      setSuccess('If an account exists for that email, a reset link has been sent.');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to request password reset.');
     } finally {
@@ -38,68 +36,57 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        py: 4,
-      }}
-    >
-      <Container maxWidth="sm">
-        <Paper elevation={24} sx={{ p: 4, borderRadius: 3 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/login')}
-            sx={{ mb: 3, textTransform: 'none', fontWeight: 600 }}
-          >
-            Back to Login
-          </Button>
+    <AuthLayout>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h2" sx={{ fontWeight: 700, mb: 1 }}>
+          Reset your password
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Enter the email address on your account. We&apos;ll send a reset link if it matches a known user.
+        </Typography>
+      </Box>
 
-          <Box sx={{ mb: 3, textAlign: 'center' }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-              Reset Your Password
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Enter your email to receive a reset link
-            </Typography>
-          </Box>
+      {success && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          {success}
+        </Alert>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
-          {success && (
-            <Alert severity="success" sx={{ mb: 3 }}>
-              {success}
-            </Alert>
-          )}
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
+      <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <TextField
+          fullWidth
+          size="medium"
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+          disabled={loading}
+        />
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          size="large"
+          disabled={loading}
+          sx={{ mt: 1, height: 44 }}
+        >
+          {loading ? <CircularProgress size={20} color="inherit" /> : 'Send reset link'}
+        </Button>
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'grid', gap: 2 }}>
-            <TextField
-              label="Email Address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon sx={{ color: 'text.secondary' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <Button type="submit" variant="contained" disabled={loading}>
-              {loading ? <CircularProgress size={22} color="inherit" /> : 'Send Reset Link'}
-            </Button>
-          </Box>
-        </Paper>
-      </Container>
-    </Box>
+        <Stack direction="row" justifyContent="center" sx={{ mt: 2 }}>
+          <Link component={RouterLink} to="/login" underline="hover" sx={{ color: 'primary.main', fontWeight: 500 }}>
+            Back to sign in
+          </Link>
+        </Stack>
+      </Box>
+    </AuthLayout>
   );
 };
 

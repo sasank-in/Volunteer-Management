@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Container,
@@ -14,6 +14,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Chip,
   Tab,
   Tabs,
@@ -38,6 +39,10 @@ const AdminDashboard = () => {
   const [tabValue, setTabValue] = useState(0);
   const [actionUserId, setActionUserId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserAccount | null>(null);
+  const [usersPage, setUsersPage] = useState(0);
+  const [usersRowsPerPage, setUsersRowsPerPage] = useState(25);
+  const [eventsPage, setEventsPage] = useState(0);
+  const [eventsRowsPerPage, setEventsRowsPerPage] = useState(25);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -214,7 +219,9 @@ const AdminDashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {users.map(u => (
+                  {users
+                    .slice(usersPage * usersRowsPerPage, usersPage * usersRowsPerPage + usersRowsPerPage)
+                    .map(u => (
                     <TableRow key={u.id}>
                       <TableCell>{u.username}</TableCell>
                       <TableCell>{u.email}</TableCell>
@@ -265,6 +272,18 @@ const AdminDashboard = () => {
                   ))}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={users.length}
+                page={usersPage}
+                onPageChange={(_, p) => setUsersPage(p)}
+                rowsPerPage={usersRowsPerPage}
+                onRowsPerPageChange={(e) => {
+                  setUsersRowsPerPage(parseInt(e.target.value, 10));
+                  setUsersPage(0);
+                }}
+                rowsPerPageOptions={[10, 25, 50, 100]}
+              />
             </TableContainer>
           )
         )}
@@ -291,7 +310,9 @@ const AdminDashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {events.map(e => (
+                  {events
+                    .slice(eventsPage * eventsRowsPerPage, eventsPage * eventsRowsPerPage + eventsRowsPerPage)
+                    .map(e => (
                     <TableRow key={e.id}>
                       <TableCell>{e.title}</TableCell>
                       <TableCell>{e.organizerName}</TableCell>
@@ -301,6 +322,18 @@ const AdminDashboard = () => {
                   ))}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={events.length}
+                page={eventsPage}
+                onPageChange={(_, p) => setEventsPage(p)}
+                rowsPerPage={eventsRowsPerPage}
+                onRowsPerPageChange={(e) => {
+                  setEventsRowsPerPage(parseInt(e.target.value, 10));
+                  setEventsPage(0);
+                }}
+                rowsPerPageOptions={[10, 25, 50, 100]}
+              />
             </TableContainer>
           )
         )}

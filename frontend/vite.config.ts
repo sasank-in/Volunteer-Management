@@ -29,4 +29,22 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    sourcemap: false,
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          mui: ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
+          query: ['@tanstack/react-query', 'axios', 'zustand'],
+        },
+      },
+    },
+  },
+  esbuild: {
+    // Strip console.* and debugger statements from production bundles so
+    // we don't leak email/path info or noise the browser console.
+    drop: ['console', 'debugger'],
+  },
 })

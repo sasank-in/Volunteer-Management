@@ -52,8 +52,12 @@ const RegisterPage: React.FC = () => {
       setError('Please fill in all required fields');
       return false;
     }
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    if (formData.password.length < 10) {
+      setError('Password must be at least 10 characters long.');
+      return false;
+    }
+    if (!/[A-Za-z]/.test(formData.password) || !/\d/.test(formData.password)) {
+      setError('Password must include both letters and digits.');
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -162,7 +166,7 @@ const RegisterPage: React.FC = () => {
           disabled={loading}
           required
           size="medium"
-          helperText="At least 8 characters"
+          helperText="At least 10 characters, with both letters and digits."
           autoComplete="new-password"
           InputProps={{
             endAdornment: (

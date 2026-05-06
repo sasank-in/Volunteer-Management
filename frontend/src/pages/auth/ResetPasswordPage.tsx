@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import {
-  Box,
-  Container,
-  Paper,
-  Typography,
-  TextField,
-  Button,
   Alert,
+  Box,
+  Button,
   CircularProgress,
+  Link,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import apiService from '@services/api';
+import AuthLayout from '@components/AuthLayout';
 
 const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const ResetPasswordPage: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tokenInvalid, setTokenInvalid] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,15 +31,20 @@ const ResetPasswordPage: React.FC = () => {
     setSuccess('');
 
     if (!token) {
-      setError('Invalid or missing reset token.');
+      setError('This reset link is missing its token. Request a new one to continue.');
+      setTokenInvalid(true);
       return;
     }
     if (!newPassword || !confirmPassword) {
-      setError('Please fill in all fields.');
+      setError('Please fill in both password fields.');
       return;
     }
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters long.');
+    if (newPassword.length < 10) {
+      setError('Password must be at least 10 characters long.');
+      return;
+    }
+    if (!/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword)) {
+      setError('Password must include both letters and digits.');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -48,71 +55,97 @@ const ResetPasswordPage: React.FC = () => {
     setLoading(true);
     try {
       await apiService.resetPassword(token, newPassword);
-      setSuccess('Password reset successful. You can now log in.');
-      setTimeout(() => navigate('/login'), 1500);
+      setSuccess('Password reset successful. Redirecting to sign-in…');
+      setTimeout(() => navigate('/login'), 1200);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to reset password.');
+      const message = err.response?.data?.error ?? '';
+      const expired = /expired|invalid|not found/i.test(message);
+      setTokenInvalid(expired);
+      setError(message || 'Failed to reset password.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        py: 4,
-      }}
-    >
-      <Container maxWidth="sm">
-        <Paper elevation={24} sx={{ p: 4, borderRadius: 3 }}>
-          <Box sx={{ mb: 3, textAlign: 'center' }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-              Set New Password
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Choose a new password to secure your account
-            </Typography>
-          </Box>
+    <AuthLayout>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h2" sx={{ fontWeight: 700, mb: 1 }}>
+          Set a new password
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Choose something you haven&apos;t used before. Reset links expire after 30 minutes.
+        </Typography>
+      </Box>
 
-          {success && (
-            <Alert severity="success" sx={{ mb: 3 }}>
-              {success}
-            </Alert>
-          )}
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          {success}
+        </Alert>
+      )}
+      {error && (
+        <Alert
+          severity="error"
+          sx={{ mb: 3 }}
+          action={
+            tokenInvalid ? (
+              <Button
+                component={RouterLink}
+                to="/forgot-password"
+                color="inherit"
+                size="small"
+              >
+                Request new link
+              </Button>
+            ) : undefined
+          }
+        >
+          {error}
+        </Alert>
+      )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'grid', gap: 2 }}>
-            <TextField
-              label="New Password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              helperText="At least 8 characters"
-            />
-            <TextField
-              label="Confirm New Password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-            <Button type="submit" variant="contained" disabled={loading}>
-              {loading ? <CircularProgress size={22} color="inherit" /> : 'Reset Password'}
-            </Button>
-          </Box>
-        </Paper>
-      </Container>
-    </Box>
+      <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <TextField
+          fullWidth
+          size="medium"
+          label="New password"
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          required
+          autoComplete="new-password"
+          helperText="At least 10 characters, with both letters and digits."
+          disabled={loading || tokenInvalid}
+        />
+        <TextField
+          fullWidth
+          size="medium"
+          label="Confirm new password"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          autoComplete="new-password"
+          disabled={loading || tokenInvalid}
+        />
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          size="large"
+          disabled={loading || tokenInvalid}
+          sx={{ mt: 1, height: 44 }}
+        >
+          {loading ? <CircularProgress size={20} color="inherit" /> : 'Reset password'}
+        </Button>
+
+        <Stack direction="row" justifyContent="center" sx={{ mt: 2 }}>
+          <Link component={RouterLink} to="/login" underline="hover" sx={{ color: 'primary.main', fontWeight: 500 }}>
+            Back to sign in
+          </Link>
+        </Stack>
+      </Box>
+    </AuthLayout>
   );
 };
 

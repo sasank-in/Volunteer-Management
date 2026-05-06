@@ -1,4 +1,4 @@
 com\volunteer\gateway\ApiGatewayApplication.class
-com\volunteer\apigateway\config\CorsConfig.class
 com\volunteer\apigateway\config\CachingConfig.class
 com\volunteer\apigateway\config\RateLimitingConfig.class
+com\volunteer\apigateway\config\CorsConfig.class

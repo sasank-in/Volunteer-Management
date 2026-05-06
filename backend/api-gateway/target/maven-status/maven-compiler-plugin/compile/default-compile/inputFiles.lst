@@ -2,4 +2,5 @@ C:\java-pro\Volunteer-Management\backend\api-gateway\src\main\java\com\volunteer
 C:\java-pro\Volunteer-Management\backend\api-gateway\src\main\java\com\volunteer\apigateway\config\CorsConfig.java
 C:\java-pro\Volunteer-Management\backend\api-gateway\src\main\java\com\volunteer\apigateway\config\RateLimitingConfig.java
 C:\java-pro\Volunteer-Management\backend\api-gateway\src\main\java\com\volunteer\apigateway\filter\AuthRateLimitFilter.java
+C:\java-pro\Volunteer-Management\backend\api-gateway\src\main\java\com\volunteer\apigateway\filter\ParticipationRateLimitFilter.java
 C:\java-pro\Volunteer-Management\backend\api-gateway\src\main\java\com\volunteer\gateway\ApiGatewayApplication.java

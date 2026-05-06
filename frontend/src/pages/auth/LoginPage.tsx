@@ -22,10 +22,13 @@ import { useAuthStore } from '@store/index';
 import type { LoginRequest } from '../../types';
 import AuthLayout from '@components/AuthLayout';
 
+// Demo accounts assume the backend has been seeded with these emails. The
+// password meets the strong-password rule (10+ chars, letters + digits, not
+// in the denylist).
 const demoCredentials = [
-  { role: 'Volunteer', email: 'volunteer@example.com', password: 'password123' },
-  { role: 'Organizer', email: 'organizer@example.com', password: 'password123' },
-  { role: 'Admin', email: 'admin@example.com', password: 'password123' },
+  { role: 'Volunteer', email: 'volunteer@example.com', password: 'Demo-Volunteer-1' },
+  { role: 'Organizer', email: 'organizer@example.com', password: 'Demo-Organizer-1' },
+  { role: 'Admin', email: 'admin@example.com', password: 'Demo-Admin-1' },
 ];
 
 const LoginPage: React.FC = () => {

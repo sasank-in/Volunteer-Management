@@ -41,6 +41,12 @@ public class UserAccount {
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
 
+  @Column(name = "failed_login_attempts", nullable = false)
+  private int failedLoginAttempts = 0;
+
+  @Column(name = "locked_until")
+  private Instant lockedUntil;
+
   @PrePersist
   public void onCreate() {
     Instant now = Instant.now();
@@ -107,5 +113,21 @@ public class UserAccount {
 
   public Instant getUpdatedAt() {
     return updatedAt;
+  }
+
+  public int getFailedLoginAttempts() {
+    return failedLoginAttempts;
+  }
+
+  public void setFailedLoginAttempts(int failedLoginAttempts) {
+    this.failedLoginAttempts = failedLoginAttempts;
+  }
+
+  public Instant getLockedUntil() {
+    return lockedUntil;
+  }
+
+  public void setLockedUntil(Instant lockedUntil) {
+    this.lockedUntil = lockedUntil;
   }
 }

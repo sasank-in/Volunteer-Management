@@ -4,6 +4,7 @@ import com.volunteer.eventservice.domain.Event;
 import com.volunteer.eventservice.domain.EventStatus;
 import com.volunteer.eventservice.domain.Participation;
 import com.volunteer.eventservice.domain.ParticipationStatus;
+import com.volunteer.eventservice.repository.EventRepository;
 import com.volunteer.eventservice.repository.ParticipationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,14 +15,17 @@ import java.util.UUID;
 @Service
 public class ParticipationService {
   private final ParticipationRepository participationRepository;
+  private final EventRepository eventRepository;
   private final EventService eventService;
   private final NotificationDispatchService notificationDispatchService;
 
   public ParticipationService(
       ParticipationRepository participationRepository,
+      EventRepository eventRepository,
       EventService eventService,
       NotificationDispatchService notificationDispatchService) {
     this.participationRepository = participationRepository;
+    this.eventRepository = eventRepository;
     this.eventService = eventService;
     this.notificationDispatchService = notificationDispatchService;
   }
@@ -29,18 +33,22 @@ public class ParticipationService {
   @Transactional
   public Participation registerForEvent(UUID eventId, UUID volunteerId, String volunteerName,
       String volunteerEmail, String authToken) {
-    Event event = eventService.getEventById(eventId);
-    
-    if (event.getStatus() == EventStatus.FULL) {
-      throw new IllegalArgumentException("Event is full");
-    }
-    if (event.getStatus() == EventStatus.COMPLETED || event.getStatus() == EventStatus.CANCELLED) {
-      throw new IllegalArgumentException("Cannot register for this event");
-    }
-
     if (participationRepository.findByEventIdAndVolunteerId(eventId, volunteerId).isPresent()) {
       throw new IllegalArgumentException("Already registered for this event");
     }
+
+    // Atomic capacity reservation. Returns 0 if the event is full, completed,
+    // cancelled, or doesn't exist — covering the previous race window.
+    int reserved = eventRepository.reserveSlot(eventId);
+    if (reserved == 0) {
+      Event existing = eventService.getEventById(eventId);
+      if (existing.getStatus() == EventStatus.FULL) {
+        throw new IllegalArgumentException("Event is full");
+      }
+      throw new IllegalArgumentException("Cannot register for this event");
+    }
+
+    Event event = eventService.getEventById(eventId);
 
     Participation participation = new Participation();
     participation.setEventId(eventId);
@@ -50,7 +58,6 @@ public class ParticipationService {
     participation.setStatus(ParticipationStatus.REGISTERED);
 
     Participation saved = participationRepository.save(participation);
-    eventService.incrementRegisteredVolunteers(eventId);
     notificationDispatchService.sendRegistrationNotification(
         event,
         volunteerId,
@@ -58,7 +65,7 @@ public class ParticipationService {
         volunteerName,
         authToken);
     notificationDispatchService.sendOrganizerRegistrationNotification(event, saved, authToken);
-    
+
     return saved;
   }
 
@@ -74,7 +81,7 @@ public class ParticipationService {
     participation.setStatus(ParticipationStatus.CANCELLED);
     participation.setCancelledAt(Instant.now());
     participationRepository.save(participation);
-    eventService.decrementRegisteredVolunteers(eventId);
+    eventRepository.releaseSlot(eventId);
 
     Event event = eventService.getEventById(eventId);
     notificationDispatchService.sendCancellationNotification(

@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: user-service
+  config:
+    import: ""
+  cloud:
+    config:
+      enabled: false
+      fail-fast: false
+    discovery:
+      enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+security:
+  jwt:
+    issuer: test-issuer
+    # Base64 of 32 zero bytes — only used by JwtKeyProvider's length check.
+    secret: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+    expires-in: 3600
+    refresh-expires-in: 7200
+
+app:
+  auth:
+    cookie:
+      secure: false
+      same-site: Lax

@@ -6,10 +6,30 @@ spring:
     url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:10}
+      minimum-idle: ${DB_POOL_MIN:2}
+      connection-timeout: 5000
+      validation-timeout: 2000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      leak-detection-threshold: 30000
+      pool-name: user-service-pool
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+    properties:
+      jakarta:
+        persistence:
+          query:
+            timeout: 5000
+      hibernate:
+        jdbc:
+          batch_size: 25
+          fetch_size: 100
+        order_inserts: true
+        order_updates: true
   flyway:
     enabled: true
 
@@ -34,6 +54,10 @@ app:
       # In production set true; for local HTTP dev set false via env.
       secure: ${AUTH_COOKIE_SECURE:false}
       same-site: ${AUTH_COOKIE_SAME_SITE:Lax}
+  sync:
+    enabled: ${USER_SYNC_ENABLED:true}
+    event-service-url: ${USER_SYNC_EVENT_URL:http://localhost:8082}
+    internal-token: ${USER_SYNC_TOKEN:dev-sync-token}
 
 management:
   endpoints:
@@ -43,6 +67,19 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+      show-components: when-authorized
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
   metrics:
     tags:
       application: ${spring.application.name:user-service}

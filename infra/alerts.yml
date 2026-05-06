@@ -1,0 +1,52 @@
+groups:
+  - name: volunteer-platform-baseline
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.service }} is down"
+          description: "{{ $labels.service }} has been unreachable for >1m."
+
+      - alert: HighErrorRate
+        expr: |
+          sum by (service) (rate(http_server_requests_seconds_count{status=~"5..|4.."}[5m]))
+          /
+          sum by (service) (rate(http_server_requests_seconds_count[5m])) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.service }} error rate above 10%"
+          description: "Sustained 4xx/5xx rate >10% over 10m on {{ $labels.service }}."
+
+      - alert: SlowEndpoint
+        expr: |
+          histogram_quantile(0.95,
+            sum by (service, uri, le)
+              (rate(http_server_requests_seconds_bucket[5m]))) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.service }} {{ $labels.uri }} p95 > 1s"
+          description: "Endpoint p95 latency over 1s for 10m."
+
+      - alert: CircuitBreakerOpen
+        expr: resilience4j_circuitbreaker_state{state="open"} == 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Circuit breaker {{ $labels.name }} OPEN on {{ $labels.service }}"
+
+      - alert: DatabaseConnectionPoolNearExhausted
+        expr: |
+          hikaricp_connections_active / hikaricp_connections_max > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.service }} DB pool >80% utilized"

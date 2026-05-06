@@ -6,10 +6,30 @@ spring:
     url: ${NOTIFICATION_DB_URL}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:10}
+      minimum-idle: ${DB_POOL_MIN:2}
+      connection-timeout: 5000
+      validation-timeout: 2000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      leak-detection-threshold: 30000
+      pool-name: notification-service-pool
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+    properties:
+      jakarta:
+        persistence:
+          query:
+            timeout: 5000
+      hibernate:
+        jdbc:
+          batch_size: 25
+          fetch_size: 100
+        order_inserts: true
+        order_updates: true
   flyway:
     enabled: true
   mail:
@@ -50,6 +70,10 @@ notification:
   internal:
     token: ${NOTIFICATION_INTERNAL_TOKEN:dev-notify-token}
 
+app:
+  mail:
+    provider: ${MAIL_PROVIDER:smtp}
+
 resilience4j:
   circuitbreaker:
     instances:
@@ -66,6 +90,21 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+      show-components: when-authorized
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db,mail
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+    mail:
+      enabled: false
   metrics:
     tags:
       application: ${spring.application.name:notification-service}

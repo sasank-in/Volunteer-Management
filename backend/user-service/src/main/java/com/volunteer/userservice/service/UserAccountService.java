@@ -16,10 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserAccountService {
   private final UserAccountRepository repository;
   private final PasswordEncoder passwordEncoder;
+  private final UserSyncPublisher userSyncPublisher;
 
-  public UserAccountService(UserAccountRepository repository, PasswordEncoder passwordEncoder) {
+  public UserAccountService(UserAccountRepository repository, PasswordEncoder passwordEncoder,
+      UserSyncPublisher userSyncPublisher) {
     this.repository = repository;
     this.passwordEncoder = passwordEncoder;
+    this.userSyncPublisher = userSyncPublisher;
   }
 
   @Transactional
@@ -95,7 +98,9 @@ public class UserAccountService {
       account.setRole(Role.VOLUNTEER);
     }
 
-    return repository.save(account);
+    UserAccount saved = repository.save(account);
+    userSyncPublisher.publishUserUpdated(saved);
+    return saved;
   }
 
   @Transactional

@@ -6,10 +6,30 @@ spring:
     url: ${EVENT_DB_URL}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:15}
+      minimum-idle: ${DB_POOL_MIN:3}
+      connection-timeout: 5000
+      validation-timeout: 2000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      leak-detection-threshold: 30000
+      pool-name: event-service-pool
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+    properties:
+      jakarta:
+        persistence:
+          query:
+            timeout: 5000
+      hibernate:
+        jdbc:
+          batch_size: 25
+          fetch_size: 100
+        order_inserts: true
+        order_updates: true
   flyway:
     enabled: true
   cache:
@@ -23,6 +43,8 @@ spring:
 app:
   cache:
     type: ${APP_CACHE_TYPE:in-memory}
+  sync:
+    internal-token: ${USER_SYNC_TOKEN:dev-sync-token}
 
 eureka:
   client:
@@ -75,6 +97,19 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+      show-components: when-authorized
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
   metrics:
     tags:
       application: ${spring.application.name:event-service}

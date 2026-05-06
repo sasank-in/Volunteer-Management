@@ -10,11 +10,12 @@ import {
   TextField,
   Chip,
   Button,
-  CircularProgress,
   LinearProgress,
   InputAdornment,
   Paper,
   Stack,
+  Skeleton,
+  Alert,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -39,7 +40,7 @@ const EventsPage: React.FC = () => {
   const [upcomingOnly, setUpcomingOnly] = useState(false);
 
   // Fetch events
-  const { data: events = [], isLoading } = useQuery({
+  const { data: events = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['events', { upcomingOnly }],
     queryFn: () => apiService.getAllEvents(upcomingOnly),
   });
@@ -345,10 +346,36 @@ const EventsPage: React.FC = () => {
         </>
 
         {/* Results */}
+        {isError ? (
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={() => refetch()}>
+                Retry
+              </Button>
+            }
+            sx={{ mb: 2 }}
+          >
+            Could not load events. Please try again.
+          </Alert>
+        ) : null}
+
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-            <CircularProgress />
-          </Box>
+          <Grid container spacing={2}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Grid item xs={12} sm={6} md={4} key={i}>
+                <Card sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Skeleton variant="rectangular" height={20} sx={{ mb: 1, width: '40%' }} />
+                    <Skeleton variant="text" height={28} sx={{ mb: 1 }} />
+                    <Skeleton variant="text" height={20} />
+                    <Skeleton variant="text" height={20} sx={{ width: '70%' }} />
+                    <Skeleton variant="rectangular" height={6} sx={{ mt: 2 }} />
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         ) : filteredEvents.length === 0 ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant="h6" sx={{ mb: 1 }}>

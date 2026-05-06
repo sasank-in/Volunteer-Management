@@ -1,3 +1,6 @@
 C:\java-pro\Volunteer-Management\backend\user-service\src\test\java\com\volunteer\userservice\config\JwtKeyProviderTest.java
+C:\java-pro\Volunteer-Management\backend\user-service\src\test\java\com\volunteer\userservice\IntegrationTestBase.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\test\java\com\volunteer\userservice\service\JwtTokenServiceTest.java
+C:\java-pro\Volunteer-Management\backend\user-service\src\test\java\com\volunteer\userservice\web\AuthFlowIT.java
+C:\java-pro\Volunteer-Management\backend\user-service\src\test\java\com\volunteer\userservice\web\PasswordResetIT.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\test\java\com\volunteer\userservice\web\UserControllerSecurityTest.java

@@ -2,6 +2,8 @@ package com.volunteer.userservice.web;
 
 import com.volunteer.userservice.domain.UserAccount;
 import com.volunteer.userservice.service.JwtTokenService;
+import com.volunteer.userservice.service.LoginAttemptService;
+import com.volunteer.userservice.service.PasswordResetMailer;
 import com.volunteer.userservice.service.UserAccountService;
 import com.volunteer.userservice.service.AuthTokenService;
 import com.volunteer.userservice.web.dto.AuthResponse;
@@ -15,7 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import com.volunteer.userservice.domain.Role;
-import java.util.HashMap;
 import java.util.Map;
 import java.time.Instant;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,6 +39,8 @@ public class AuthController {
   private final AuthTokenService authTokenService;
   private final JwtDecoder jwtDecoder;
   private final AuthCookies authCookies;
+  private final PasswordResetMailer passwordResetMailer;
+  private final LoginAttemptService loginAttemptService;
 
   public AuthController(
       UserAccountService userAccountService,
@@ -45,13 +48,17 @@ public class AuthController {
       JwtTokenService jwtTokenService,
       AuthTokenService authTokenService,
       JwtDecoder jwtDecoder,
-      AuthCookies authCookies) {
+      AuthCookies authCookies,
+      PasswordResetMailer passwordResetMailer,
+      LoginAttemptService loginAttemptService) {
     this.userAccountService = userAccountService;
     this.authenticationManager = authenticationManager;
     this.jwtTokenService = jwtTokenService;
     this.authTokenService = authTokenService;
     this.jwtDecoder = jwtDecoder;
     this.authCookies = authCookies;
+    this.passwordResetMailer = passwordResetMailer;
+    this.loginAttemptService = loginAttemptService;
   }
 
   /**
@@ -79,14 +86,29 @@ public class AuthController {
 
   @PostMapping("/login")
   public AuthResponse login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
-    Authentication authentication = authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(
-            request.getEmail(),
-            request.getPassword()));
+    UserAccount preAuth = userAccountService.findByEmail(request.getEmail()).orElse(null);
+    if (preAuth != null && loginAttemptService.isLocked(preAuth)) {
+      throw new IllegalArgumentException(
+          "Account temporarily locked due to repeated failed logins. Try again later.");
+    }
+
+    Authentication authentication;
+    try {
+      authentication = authenticationManager.authenticate(
+          new UsernamePasswordAuthenticationToken(
+              request.getEmail(),
+              request.getPassword()));
+    } catch (org.springframework.security.core.AuthenticationException ex) {
+      if (preAuth != null) {
+        loginAttemptService.recordFailure(preAuth);
+      }
+      throw new IllegalArgumentException("Invalid credentials.");
+    }
 
     String principal = authentication.getName();
     UserAccount account = userAccountService.findByEmail(principal)
         .orElseThrow(() -> new IllegalArgumentException("User not found."));
+    loginAttemptService.recordSuccess(account);
 
     Role safeRole = account.getRole() != null ? account.getRole() : Role.VOLUNTEER;
 
@@ -181,13 +203,15 @@ public class AuthController {
 
   @PostMapping("/forgot-password")
   public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-    UserAccount account = userAccountService.findByEmail(request.getEmail())
-        .orElseThrow(() -> new IllegalArgumentException("User not found."));
-    String resetToken = authTokenService.createPasswordResetToken(account);
-    Map<String, String> response = new HashMap<>();
-    response.put("message", "Password reset token created.");
-    response.put("resetToken", resetToken);
-    return response;
+    // Always return the same response whether the email exists or not, so an
+    // attacker can't enumerate accounts. The reset token is delivered out of
+    // band via email and never returned in the response body.
+    userAccountService.findByEmail(request.getEmail()).ifPresent(account -> {
+      String resetToken = authTokenService.createPasswordResetToken(account);
+      passwordResetMailer.sendResetLink(account, resetToken);
+    });
+    return Map.of("message",
+        "If an account exists for that email, a reset link has been sent.");
   }
 
   @PostMapping("/reset-password")

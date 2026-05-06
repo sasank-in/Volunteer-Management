@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: event-service
+  config:
+    import: ""
+  cloud:
+    config:
+      enabled: false
+      fail-fast: false
+    discovery:
+      enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+security:
+  jwt:
+    issuer: test-issuer
+    secret: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+
+notification:
+  service:
+    url: http://localhost:0
+  internal:
+    token: test-token
+  outbox:
+    max-attempts: 1
+    retry-delay-ms: 1000
+  reminder:
+    hours-before: 24
+    check-interval-ms: 999999999
+
+app:
+  cache:
+    type: in-memory
