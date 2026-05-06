@@ -9,7 +9,6 @@ com\volunteer\userservice\web\dto\ForgotPasswordRequest.class
 com\volunteer\userservice\web\dto\LoginRequest.class
 com\volunteer\userservice\config\JwtKeyProvider.class
 com\volunteer\userservice\web\AuthController.class
-com\volunteer\userservice\web\dto\RefreshRequest.class
 com\volunteer\userservice\service\JwtTokenService.class
 com\volunteer\userservice\web\dto\UpdateUserRequest.class
 com\volunteer\userservice\UserServiceApplication.class

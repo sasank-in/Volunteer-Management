@@ -20,21 +20,19 @@ public class AuthResponse {
     return user;
   }
 
+  /**
+   * Only the short-lived access token is returned in the body. The refresh
+   * token lives in an HttpOnly cookie and is never readable by JS.
+   */
   public static class Tokens {
     private String accessToken;
-    private String refreshToken;
 
-    public Tokens(String accessToken, String refreshToken) {
+    public Tokens(String accessToken) {
       this.accessToken = accessToken;
-      this.refreshToken = refreshToken;
     }
 
     public String getAccessToken() {
       return accessToken;
-    }
-
-    public String getRefreshToken() {
-      return refreshToken;
     }
   }
 

@@ -16,7 +16,6 @@ export type UserRole = 'VOLUNTEER' | 'ORGANIZER' | 'ADMIN';
 export interface AuthResponse {
   tokens: {
     accessToken: string;
-    refreshToken: string;
   };
   user: UserAccount;
 }

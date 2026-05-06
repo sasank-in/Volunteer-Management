@@ -15,10 +15,10 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-console.log('[API Service] API Base URL:', API_BASE_URL);
-
 class ApiService {
   private api: AxiosInstance;
+  private accessToken: string | null = null;
+  private accessTokenListeners: Array<(token: string | null) => void> = [];
 
   constructor() {
     this.api = axios.create({
@@ -26,85 +26,80 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
       },
+      // Send the HttpOnly refresh-token cookie on /auth/refresh and /auth/logout.
+      withCredentials: true,
+      // Spring's CookieCsrfTokenRepository sets XSRF-TOKEN; axios mirrors it back as X-XSRF-TOKEN.
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN',
     });
 
-    // Add token to requests
     this.api.interceptors.request.use((config) => {
-      const token = this.getAccessToken();
-      console.log('[API Request] Path:', config.url, 'Token:', !!token);
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+      if (this.accessToken) {
+        config.headers.Authorization = `Bearer ${this.accessToken}`;
       }
       return config;
     });
 
-    // Handle responses
     this.api.interceptors.response.use(
-      (response) => {
-        console.log('[API Response] Success:', response.status, response.config.url);
-        return response;
-      },
+      (response) => response,
       (error) => {
-        console.error('[API Error] Status:', error.response?.status, 'URL:', error.config?.url, 'Message:', error.message);
-        
         if (error.response?.status === 401) {
-          console.error('[API Error] 401 Unauthorized - token is invalid');
-          // Don't redirect here, let the app handle it through auth state
-          this.clearAuth();
+          this.setAccessToken(null);
         }
         return Promise.reject(error);
       }
     );
   }
 
-  private clearAuth(): void {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    // Don't use window.location - let React Router handle navigation
+  setAccessToken(token: string | null): void {
+    this.accessToken = token;
+    this.accessTokenListeners.forEach((cb) => cb(token));
   }
 
-  private getAccessToken(): string | null {
-    return localStorage.getItem('accessToken');
+  getAccessToken(): string | null {
+    return this.accessToken;
   }
 
-  // Auth endpoints
+  onAccessTokenChange(cb: (token: string | null) => void): () => void {
+    this.accessTokenListeners.push(cb);
+    return () => {
+      this.accessTokenListeners = this.accessTokenListeners.filter((l) => l !== cb);
+    };
+  }
+
   async register(data: RegisterRequest): Promise<UserAccount> {
-    console.log('[API] Registering user:', data.email);
     const response = await this.api.post<UserAccount>('/auth/register', data);
     return response.data;
   }
 
   async login(data: LoginRequest): Promise<AuthResponse> {
-    console.log('[API] Login attempt for:', data.email);
-    try {
-      const response = await this.api.post<AuthResponse>('/auth/login', data);
-      console.log('[API] Login successful, tokens received');
-      localStorage.setItem('accessToken', response.data.tokens.accessToken);
-      localStorage.setItem('refreshToken', response.data.tokens.refreshToken);
-      return response.data;
-    } catch (error) {
-      console.error('[API] Login failed:', error);
-      throw error;
-    }
+    const response = await this.api.post<AuthResponse>('/auth/login', data);
+    this.setAccessToken(response.data.tokens.accessToken);
+    return response.data;
   }
 
   async logout(): Promise<void> {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (refreshToken) {
-      await this.api.post('/auth/logout', { refreshToken });
+    try {
+      await this.primeCsrf();
+      await this.api.post('/auth/logout');
+    } finally {
+      this.setAccessToken(null);
     }
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+  }
+
+  /**
+   * Exchanges the refresh-token cookie for a new access token. Used at app
+   * boot to re-establish a session and after 401s.
+   */
+  /** Prime the XSRF-TOKEN cookie so axios can echo it on the next POST. */
+  async primeCsrf(): Promise<void> {
+    await this.api.get('/auth/csrf');
   }
 
   async refreshToken(): Promise<AuthResponse> {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-    const response = await this.api.post<AuthResponse>('/auth/refresh', { refreshToken });
-    localStorage.setItem('accessToken', response.data.tokens.accessToken);
-    localStorage.setItem('refreshToken', response.data.tokens.refreshToken);
+    await this.primeCsrf();
+    const response = await this.api.post<AuthResponse>('/auth/refresh');
+    this.setAccessToken(response.data.tokens.accessToken);
     return response.data;
   }
 
@@ -120,7 +115,6 @@ class ApiService {
     await this.api.post('/auth/change-password', { oldPassword, newPassword });
   }
 
-  // User endpoints
   async getProfile(): Promise<UserAccount> {
     const response = await this.api.get<UserAccount>('/users/me');
     return response.data;
@@ -150,7 +144,6 @@ class ApiService {
     await this.api.delete(`/users/${userId}`);
   }
 
-  // Event endpoints
   async getAllEvents(upcoming?: boolean): Promise<Event[]> {
     const params = upcoming !== undefined ? { upcoming } : {};
     const response = await this.api.get<Event[]>('/events', { params });
@@ -181,7 +174,6 @@ class ApiService {
     return response.data;
   }
 
-  // Participation endpoints
   async registerForEvent(eventId: string): Promise<Participation> {
     const response = await this.api.post<Participation>(
       `/participations/events/${eventId}/register`,
@@ -214,7 +206,6 @@ class ApiService {
     return response.data;
   }
 
-  // Feedback endpoints
   async submitFeedback(eventId: string, data: CreateFeedbackRequest): Promise<Feedback> {
     const response = await this.api.post<Feedback>(
       `/feedbacks/events/${eventId}/submit`,
@@ -233,7 +224,6 @@ class ApiService {
     return response.data;
   }
 
-  // Notification endpoints
   async getNotifications(): Promise<Notification[]> {
     const response = await this.api.get<Notification[]>('/notifications');
     return response.data;

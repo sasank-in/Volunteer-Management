@@ -8,10 +8,11 @@ import com.volunteer.userservice.web.dto.AuthResponse;
 import com.volunteer.userservice.web.dto.ChangePasswordRequest;
 import com.volunteer.userservice.web.dto.LoginRequest;
 import com.volunteer.userservice.web.dto.ForgotPasswordRequest;
-import com.volunteer.userservice.web.dto.RefreshRequest;
 import com.volunteer.userservice.web.dto.RegisterRequest;
 import com.volunteer.userservice.web.dto.ResetPasswordRequest;
 import com.volunteer.userservice.web.dto.UserResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import com.volunteer.userservice.domain.Role;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,18 +37,30 @@ public class AuthController {
   private final JwtTokenService jwtTokenService;
   private final AuthTokenService authTokenService;
   private final JwtDecoder jwtDecoder;
+  private final AuthCookies authCookies;
 
   public AuthController(
       UserAccountService userAccountService,
       AuthenticationManager authenticationManager,
       JwtTokenService jwtTokenService,
       AuthTokenService authTokenService,
-      JwtDecoder jwtDecoder) {
+      JwtDecoder jwtDecoder,
+      AuthCookies authCookies) {
     this.userAccountService = userAccountService;
     this.authenticationManager = authenticationManager;
     this.jwtTokenService = jwtTokenService;
     this.authTokenService = authTokenService;
     this.jwtDecoder = jwtDecoder;
+    this.authCookies = authCookies;
+  }
+
+  /**
+   * Lightweight endpoint whose only purpose is to prime the XSRF-TOKEN cookie
+   * before the SPA calls a CSRF-protected endpoint like /auth/refresh.
+   */
+  @GetMapping("/csrf")
+  public Map<String, String> csrf() {
+    return Map.of("status", "ok");
   }
 
   @PostMapping("/register")
@@ -64,7 +78,7 @@ public class AuthController {
   }
 
   @PostMapping("/login")
-  public AuthResponse login(@Valid @RequestBody LoginRequest request) {
+  public AuthResponse login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
     Authentication authentication = authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(
             request.getEmail(),
@@ -84,7 +98,9 @@ public class AuthController {
       throw new IllegalArgumentException("Refresh token missing expiry.");
     }
     authTokenService.storeRefreshToken(account, refreshToken, refreshExpiresAt);
-    AuthResponse.Tokens tokens = new AuthResponse.Tokens(accessToken, refreshToken);
+    authCookies.writeRefreshCookie(response, refreshToken, jwtTokenService.getRefreshExpiresIn());
+
+    AuthResponse.Tokens tokens = new AuthResponse.Tokens(accessToken);
     AuthResponse.User user = new AuthResponse.User(
         account.getUsername(),
         account.getEmail(),
@@ -97,10 +113,15 @@ public class AuthController {
   }
 
   @PostMapping("/refresh")
-  public AuthResponse refresh(@Valid @RequestBody RefreshRequest request) {
-    Jwt jwt = jwtDecoder.decode(request.getRefreshToken());
+  public AuthResponse refresh(HttpServletRequest request, HttpServletResponse response) {
+    String currentRefresh = authCookies.readRefreshCookie(request);
+    if (currentRefresh == null || currentRefresh.isBlank()) {
+      throw new IllegalArgumentException("Missing refresh token.");
+    }
+
+    Jwt jwt = jwtDecoder.decode(currentRefresh);
     String type = jwt.getClaimAsString("type");
-    if (type == null || !"refresh".equals(type)) {
+    if (!"refresh".equals(type)) {
       throw new IllegalArgumentException("Invalid refresh token.");
     }
     String subject = jwt.getSubject();
@@ -108,7 +129,7 @@ public class AuthController {
       throw new IllegalArgumentException("Invalid refresh token.");
     }
 
-    authTokenService.getValidRefreshToken(request.getRefreshToken());
+    authTokenService.getValidRefreshToken(currentRefresh);
 
     UserAccount account = userAccountService.findByUsernameOrEmail(subject)
         .orElseThrow(() -> new IllegalArgumentException("User not found."));
@@ -116,15 +137,17 @@ public class AuthController {
     Role safeRole = account.getRole() != null ? account.getRole() : Role.VOLUNTEER;
 
     String accessToken = jwtTokenService.generateAccessToken(account);
-    String refreshToken = jwtTokenService.generateRefreshToken(account);
-    authTokenService.revokeRefreshToken(request.getRefreshToken());
-    Jwt refreshJwt = jwtDecoder.decode(refreshToken);
+    String newRefresh = jwtTokenService.generateRefreshToken(account);
+    authTokenService.revokeRefreshToken(currentRefresh);
+    Jwt refreshJwt = jwtDecoder.decode(newRefresh);
     Instant refreshExpiresAt = refreshJwt.getExpiresAt();
     if (refreshExpiresAt == null) {
       throw new IllegalArgumentException("Refresh token missing expiry.");
     }
-    authTokenService.storeRefreshToken(account, refreshToken, refreshExpiresAt);
-    AuthResponse.Tokens tokens = new AuthResponse.Tokens(accessToken, refreshToken);
+    authTokenService.storeRefreshToken(account, newRefresh, refreshExpiresAt);
+    authCookies.writeRefreshCookie(response, newRefresh, jwtTokenService.getRefreshExpiresIn());
+
+    AuthResponse.Tokens tokens = new AuthResponse.Tokens(accessToken);
     AuthResponse.User user = new AuthResponse.User(
         account.getUsername(),
         account.getEmail(),
@@ -147,8 +170,12 @@ public class AuthController {
   }
 
   @PostMapping("/logout")
-  public Map<String, String> logout(@Valid @RequestBody RefreshRequest request) {
-    authTokenService.revokeRefreshToken(request.getRefreshToken());
+  public Map<String, String> logout(HttpServletRequest request, HttpServletResponse response) {
+    String currentRefresh = authCookies.readRefreshCookie(request);
+    if (currentRefresh != null && !currentRefresh.isBlank()) {
+      authTokenService.revokeRefreshToken(currentRefresh);
+    }
+    authCookies.clearRefreshCookie(response);
     return Map.of("message", "Logged out.");
   }
 

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,6 +66,7 @@ public class UserController {
   }
 
   @GetMapping
+  @PreAuthorize("hasRole('ADMIN')")
   public List<UserResponse> getAll(@RequestParam(name = "role", required = false) Role role) {
     List<UserAccount> accounts = role == null
         ? userAccountService.findAll()
@@ -82,6 +84,7 @@ public class UserController {
   }
 
   @GetMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public UserResponse getById(@PathVariable("id") UUID id) {
     UserAccount account = userAccountService.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("User not found."));
@@ -96,6 +99,7 @@ public class UserController {
   }
 
   @PutMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public UserResponse update(@PathVariable("id") UUID id,
       @Valid @RequestBody UpdateUserRequest request) {
     UserAccount account = userAccountService.updateUser(id, request);
@@ -110,6 +114,7 @@ public class UserController {
   }
 
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public void delete(@PathVariable("id") UUID id) {
     userAccountService.deleteUser(id);
   }

@@ -7,54 +7,36 @@ interface AuthProviderProps {
 }
 
 /**
- * AuthProvider: Initializes authentication once when the app boots
- * This ensures auth state is set up BEFORE any routes are rendered
+ * On boot, attempt a silent refresh. If the HttpOnly refresh cookie is valid
+ * the server returns a fresh access token + user; otherwise the user lands
+ * unauthenticated and is sent to /login by route guards.
  */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const { user, setUser, setAuthenticated, setLoading, setInitialized } = useAuthStore();
+  const { setUser, setAuthenticated, setLoading, setInitialized } = useAuthStore();
 
   useEffect(() => {
+    let cancelled = false;
     const initializeAuth = async () => {
-      console.log('[AuthProvider] Starting authentication initialization');
-      
       try {
-        const token = localStorage.getItem('accessToken');
-        console.log('[AuthProvider] Token in localStorage:', !!token);
-        
-        // Case 1: Have token and user already persisted (from previous session)
-        if (token && user) {
-          console.log('[AuthProvider] Have token and persisted user - already authenticated');
-          setAuthenticated(true);
-        }
-        // Case 2: Have token but no user - fetch profile
-        else if (token && !user) {
-          console.log('[AuthProvider] Have token but no user in store - fetching profile');
-          try {
-            const profile = await apiService.getProfile();
-            console.log('[AuthProvider] Profile fetched successfully:', profile.email);
-            setUser(profile);
-            setAuthenticated(true);
-          } catch (error) {
-            console.error('[AuthProvider] Failed to fetch profile with token:', error);
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            setAuthenticated(false);
-          }
-        }
-        // Case 3: No token - not authenticated
-        else {
-          console.log('[AuthProvider] No token found - not authenticated');
-          setAuthenticated(false);
-        }
+        const response = await apiService.refreshToken();
+        if (cancelled) return;
+        setUser(response.user);
+        setAuthenticated(true);
+      } catch {
+        if (cancelled) return;
+        setAuthenticated(false);
       } finally {
-        console.log('[AuthProvider] Initialization complete - setting loading to false');
+        if (cancelled) return;
         setLoading(false);
         setInitialized(true);
       }
     };
 
     initializeAuth();
-  }, []); // Empty dependency array - only run once on mount
+    return () => {
+      cancelled = true;
+    };
+  }, [setUser, setAuthenticated, setLoading, setInitialized]);
 
   return <>{children}</>;
 };

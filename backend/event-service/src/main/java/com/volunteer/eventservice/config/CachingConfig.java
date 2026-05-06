@@ -1,21 +1,44 @@
 package com.volunteer.eventservice.config;
 
+import java.time.Duration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
- * Configuration for event service caching.
- * Caches frequently accessed event data to reduce database queries.
+ * Distributed Redis cache when {@code app.cache.type=redis}, otherwise an in-memory
+ * fallback for local development without Redis.
  */
 @Configuration
 @EnableCaching
 public class CachingConfig {
 
   @Bean
-  public CacheManager cacheManager() {
+  @ConditionalOnProperty(name = "app.cache.type", havingValue = "redis")
+  public CacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
+    RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+        .entryTtl(Duration.ofMinutes(10))
+        .disableCachingNullValues()
+        .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+        .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+    return RedisCacheManager.builder(connectionFactory)
+        .cacheDefaults(config)
+        .withCacheConfiguration("events", config)
+        .build();
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "app.cache.type", havingValue = "in-memory", matchIfMissing = true)
+  public CacheManager inMemoryCacheManager() {
     return new ConcurrentMapCacheManager("events");
   }
 }

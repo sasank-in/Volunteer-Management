@@ -25,6 +25,7 @@
     <spring.cloud.version>2024.0.1</spring.cloud.version>
     <springdoc.version>2.7.0</springdoc.version>
     <resilience4j.version>2.1.0</resilience4j.version>
+    <logstash.encoder.version>7.4</logstash.encoder.version>
     <maven.compiler.release>${java.version}</maven.compiler.release>
   </properties>
 
@@ -58,6 +59,11 @@
         <groupId>io.github.resilience4j</groupId>
         <artifactId>resilience4j-ratelimiter</artifactId>
         <version>${resilience4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.logstash.logback</groupId>
+        <artifactId>logstash-logback-encoder</artifactId>
+        <version>${logstash.encoder.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

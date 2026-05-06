@@ -98,19 +98,28 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   const drawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box sx={{ p: 2 }}>
-        <Typography
-          variant="h6"
+      <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box
           sx={{
+            width: 28,
+            height: 28,
+            borderRadius: 1,
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             fontWeight: 700,
-            background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '-0.5px',
+            fontSize: '0.875rem',
           }}
         >
-          VolunteerHub
+          V
+        </Box>
+        <Typography
+          variant="subtitle1"
+          sx={{ fontWeight: 700, letterSpacing: '-0.01em', color: 'text.primary' }}
+        >
+          Volunteer Platform
         </Typography>
       </Box>
 
@@ -210,11 +219,18 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
       <Divider />
 
-      <Box sx={{ p: 2, bgcolor: 'action.hover', m: 1, borderRadius: 1 }}>
-        <Typography variant="caption" color="text.secondary" display="block" sx={{ fontWeight: 600 }}>
-          Current Role
+      <Box sx={{ px: 2.5, py: 2 }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, mb: 0.5 }}
+        >
+          Signed in as
         </Typography>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, mt: 0.5 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          {user?.username}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
           {user?.role === 'ORGANIZER'
             ? 'Event Organizer'
             : user?.role === 'ADMIN'

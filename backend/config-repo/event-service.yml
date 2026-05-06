@@ -14,6 +14,15 @@ spring:
     enabled: true
   cache:
     type: simple
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+
+app:
+  cache:
+    type: ${APP_CACHE_TYPE:in-memory}
 
 eureka:
   client:
@@ -62,10 +71,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus,metrics
   endpoint:
     health:
       show-details: when-authorized
+  metrics:
+    tags:
+      application: ${spring.application.name:event-service}
 
 springdoc:
   swagger-ui:

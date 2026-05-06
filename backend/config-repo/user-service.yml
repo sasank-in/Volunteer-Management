@@ -28,11 +28,24 @@ security:
     expires-in: ${JWT_EXPIRES_IN:3600}
     refresh-expires-in: ${JWT_REFRESH_EXPIRES_IN:604800}
 
+app:
+  auth:
+    cookie:
+      # In production set true; for local HTTP dev set false via env.
+      secure: ${AUTH_COOKIE_SECURE:false}
+      same-site: ${AUTH_COOKIE_SAME_SITE:Lax}
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    tags:
+      application: ${spring.application.name:user-service}
 
 springdoc:
   swagger-ui:

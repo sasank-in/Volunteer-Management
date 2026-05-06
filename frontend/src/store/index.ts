@@ -41,11 +41,13 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'auth-storage', // localStorage key
+      name: 'auth-storage',
+      // Don't persist isAuthenticated — AuthProvider re-establishes it on boot
+      // via the HttpOnly refresh cookie. Persisting user only is for a
+      // graceful loading state with the right name/role badge.
       partialize: (state) => ({
         user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }), // Only persist user and isAuthenticated
+      }),
     }
   )
 );

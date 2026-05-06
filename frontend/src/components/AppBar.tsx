@@ -65,9 +65,9 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
   };
 
   const getAvatarColor = (role?: string): string => {
-    if (role === 'ORGANIZER') return '#8b5cf6';
-    if (role === 'ADMIN') return '#ef4444';
-    return '#3b82f6';
+    if (role === 'ORGANIZER') return '#0F766E';
+    if (role === 'ADMIN') return '#B91C1C';
+    return '#0F4C81';
   };
 
   const getInitials = (username?: string): string => {
@@ -85,8 +85,6 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
           color: 'text.primary',
           borderBottom: '1px solid',
           borderColor: 'divider',
-          backdropFilter: 'blur(10px)',
-          backgroundImage: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.01))',
         }}
       >
         <Toolbar
@@ -114,21 +112,15 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
           </IconButton>
 
           <Typography
-            variant="h6"
+            variant="subtitle1"
             sx={{
               flexGrow: 1,
               fontWeight: 700,
-              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: 'text.primary',
               cursor: 'pointer',
-              fontSize: { xs: '1rem', sm: '1.25rem' },
-              transition: 'all 0.2s',
-              '&:hover': {
-                opacity: 0.8,
-                transform: 'scale(1.02)',
-              },
+              fontSize: { xs: '0.9375rem', sm: '1rem' },
+              letterSpacing: '-0.01em',
+              textTransform: 'none',
             }}
             onClick={() => navigate('/events')}
             role="button"
@@ -194,16 +186,10 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick }) => {
               <Avatar
                 sx={{
                   bgcolor: getAvatarColor(user?.role),
-                  width: 36,
-                  height: 36,
-                  fontSize: '0.875rem',
+                  width: 32,
+                  height: 32,
+                  fontSize: '0.8125rem',
                   fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    boxShadow: (theme) =>
-                      `0 0 0 2px ${theme.palette.background.paper}, 0 0 0 4px ${theme.palette.primary.main}`,
-                  },
                 }}
               >
                 {getInitials(user?.username)}

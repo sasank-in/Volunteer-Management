@@ -26,7 +26,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
 import apiService from '@services/api';
 import MainLayout from '@components/Layout';
+import StatCard from '@components/StatCard';
 import { formatDate, calculateProgressPercentage, getEventStatusColor, getEventStatusLabel } from '@utils/helpers';
+
+type StatColor = 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -84,30 +87,36 @@ const DashboardPage: React.FC = () => {
     enabled: user?.role === 'VOLUNTEER',
   });
 
-  const statCards = [
+  const statCards: Array<{
+    label: string;
+    value: string | number;
+    icon: React.ReactNode;
+    color: StatColor;
+    visible?: boolean;
+  }> = [
     {
       label: 'Total Events',
       value: baseStats.totalEvents,
-      icon: <EventIcon />,
-      color: '#3b82f6',
+      icon: <EventIcon fontSize="small" />,
+      color: 'primary',
     },
     {
       label: user?.role === 'VOLUNTEER' ? 'Registered Events' : 'Organized Events',
       value: user?.role === 'VOLUNTEER' ? baseStats.registeredEvents : organizedEvents.length,
-      icon: <PeopleIcon />,
-      color: '#8b5cf6',
+      icon: <PeopleIcon fontSize="small" />,
+      color: 'secondary',
     },
     {
       label: 'Completed Events',
       value: baseStats.completedEvents,
-      icon: <TrendingUpIcon />,
-      color: '#10b981',
+      icon: <TrendingUpIcon fontSize="small" />,
+      color: 'success',
     },
     {
       label: 'Avg Rating',
       value: avgRatingQuery.data?.toFixed(1) ?? '0.0',
-      icon: <StarIcon />,
-      color: '#f59e0b',
+      icon: <StarIcon fontSize="small" />,
+      color: 'warning',
       visible: user?.role === 'VOLUNTEER',
     },
   ];
@@ -127,49 +136,17 @@ const DashboardPage: React.FC = () => {
           </Typography>
         </Box>
 
-        {/* Stats Cards */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
           {statCards
             .filter((card) => card.visible !== false)
             .map((stat, index) => (
               <Grid item xs={12} sm={6} md={3} key={index}>
-                <Card sx={{ height: '100%', position: 'relative', overflow: 'hidden' }}>
-                  <CardContent>
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: -20,
-                        right: -20,
-                        width: 100,
-                        height: 100,
-                        borderRadius: '50%',
-                        bgcolor: stat.color,
-                        opacity: 0.1,
-                      }}
-                    />
-                    <Box sx={{ position: 'relative', zIndex: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Box
-                          sx={{
-                            p: 1.5,
-                            borderRadius: 1,
-                            bgcolor: stat.color,
-                            color: 'white',
-                            mr: 2,
-                          }}
-                        >
-                          {stat.icon}
-                        </Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {stat.label}
-                        </Typography>
-                      </Box>
-                      <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                        {stat.value}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title={stat.label}
+                  value={stat.value}
+                  icon={stat.icon}
+                  color={stat.color}
+                />
               </Grid>
             ))}
         </Grid>
@@ -207,18 +184,7 @@ const DashboardPage: React.FC = () => {
             <Grid container spacing={2}>
               {(user?.role === 'ORGANIZER' ? organizedEvents : events).map((event) => (
                 <Grid item xs={12} sm={6} md={4} key={event.id}>
-                  <Card
-                    sx={{
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: 6,
-                      },
-                    }}
-                  >
+                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                     <CardActionArea onClick={() => navigate(`/events/${event.id}`)} sx={{ height: '100%' }}>
                       {/* Status Badge */}
                       <Box
@@ -308,37 +274,29 @@ const DashboardPage: React.FC = () => {
           )}
         </Box>
 
-        {/* CTA Section */}
         {user?.role === 'VOLUNTEER' && (
           <Paper
+            variant="outlined"
             sx={{
               p: 4,
-              textAlign: 'center',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              borderRadius: 2,
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              justifyContent: 'space-between',
+              gap: 2,
+              bgcolor: 'background.paper',
             }}
           >
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
-              Ready to make a difference?
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 3 }}>
-              Browse all available volunteer opportunities and join a cause you care about.
-            </Typography>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => navigate('/events')}
-              sx={{
-                bgcolor: 'white',
-                color: 'primary.main',
-                fontWeight: 600,
-                '&:hover': {
-                  bgcolor: '#f9fafb',
-                },
-              }}
-            >
-              Explore Events
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 600, mb: 0.5 }}>
+                Find your next opportunity
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Browse open events and sign up in a few clicks.
+              </Typography>
+            </Box>
+            <Button variant="contained" size="large" onClick={() => navigate('/events')}>
+              Explore events
             </Button>
           </Paper>
         )}
