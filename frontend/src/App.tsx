@@ -17,6 +17,7 @@ import RegisterPage from '@pages/auth/RegisterPage';
 import ForgotPasswordPage from '@pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '@pages/auth/ResetPasswordPage';
 import NotFoundPage from '@pages/NotFoundPage';
+import PublicEventPage from '@pages/PublicEventPage';
 import EventsPage from '@pages/events/EventsPage';
 import EventDetailPage from '@pages/events/EventDetailPage';
 import CreateEventPage from '@pages/events/CreateEventPage';
@@ -24,6 +25,7 @@ import ProfilePage from '@pages/profile/ProfilePage';
 import NotificationsPage from '@pages/notifications/NotificationsPage';
 import DashboardPage from '@pages/dashboard/DashboardPage';
 import AdminDashboard from '@pages/admin/AdminDashboard';
+import OrganizerDashboard from '@pages/organizer/OrganizerDashboard';
 
 // Components
 import ProtectedRoute from '@components/ProtectedRoute';
@@ -55,6 +57,9 @@ const EntryRoute: React.FC = () => {
     if (user?.role === 'ADMIN') {
       return <Navigate to="/admin" replace />;
     }
+    if (user?.role === 'ORGANIZER') {
+      return <Navigate to="/organizer" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -83,6 +88,7 @@ const App: React.FC = () => {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/e/:slug" element={<PublicEventPage />} />
 
                 {/* Protected Routes */}
                 <Route
@@ -106,6 +112,14 @@ const App: React.FC = () => {
                   element={
                     <ProtectedRoute requiredRoles={['ADMIN']}>
                       <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/organizer"
+                  element={
+                    <ProtectedRoute requiredRoles={['ORGANIZER', 'ADMIN']}>
+                      <OrganizerDashboard />
                     </ProtectedRoute>
                   }
                 />

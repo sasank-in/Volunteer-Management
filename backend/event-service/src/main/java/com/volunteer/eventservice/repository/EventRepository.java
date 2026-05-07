@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -18,6 +19,8 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
   List<Event> findByEventDateAfter(LocalDateTime date);
   List<Event> findByStatusAndEventDateAfter(EventStatus status, LocalDateTime date);
   List<Event> findByStatusAndEventDateBetween(EventStatus status, LocalDateTime start, LocalDateTime end);
+  Optional<Event> findBySlug(String slug);
+  boolean existsBySlug(String slug);
 
   /**
    * Atomically reserves a volunteer slot. Returns 1 if a slot was reserved,

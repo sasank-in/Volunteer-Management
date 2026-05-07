@@ -1,6 +1,23 @@
 # Volunteer Management Platform
 
+[![CI](https://github.com/sasank-in/Volunteer-Management/actions/workflows/ci.yml/badge.svg)](https://github.com/sasank-in/Volunteer-Management/actions/workflows/ci.yml)
+
 A microservices-based platform for coordinating volunteer events, participation, and notifications. Spring Boot + PostgreSQL + React.
+
+## Highlights
+
+What makes this more than a CRUD demo:
+
+- **Cookie-based auth** — JWT access tokens in memory, refresh token in an `HttpOnly` cookie scoped to `/api/auth`, CSRF protection on cookie-bearing endpoints. No tokens in `localStorage`.
+- **Atomic capacity reservation** — event registration uses a single `UPDATE … WHERE registered < required` SQL statement, race-free under concurrent registrations. Verified by a Testcontainers integration test that fires 20 simultaneous registrations at a 5-slot event.
+- **Resilience4j everywhere it matters** — circuit breaker on the event→notification call, rate limiters at the gateway on `/api/auth/**` and `/api/participations/**`.
+- **Real-time live updates** — WebSocket + STOMP push registration count changes to all viewers of an event detail page. Auth on the STOMP CONNECT frame, not just the HTTP handshake.
+- **Public shareable event pages** — `/e/{slug}` works without auth and shows a redacted projection (no organizer email, no participant list).
+- **Cover image uploads** — multipart with content-type / size validation, path-traversal-safe local storage, swappable `FileStorage` interface for future S3.
+- **Account lockout, password complexity, no-enum forgot-password** — boring but rare in portfolios.
+- **Admin audit log** — every role change, profile edit, and deletion by an admin is recorded with actor, target, and timestamp; visible in the Admin → Activity tab.
+- **Observability stack** — Micrometer + Prometheus on every service, baseline alert rules, optional Grafana container, structured JSON logs via `SPRING_PROFILES_ACTIVE=json`.
+- **Honest tests** — 9 unit tests + 3 Testcontainers-backed integration suites (auth flow with cookies + CSRF, password reset expiry/reuse, capacity race).
 
 ## Architecture
 

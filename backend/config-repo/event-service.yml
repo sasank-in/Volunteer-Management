@@ -32,6 +32,11 @@ spring:
         order_updates: true
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 6MB
   cache:
     type: simple
   data:
@@ -45,6 +50,13 @@ app:
     type: ${APP_CACHE_TYPE:in-memory}
   sync:
     internal-token: ${USER_SYNC_TOKEN:dev-sync-token}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173}
+  storage:
+    # Swap to s3 / gcs etc. once a corresponding FileStorage bean exists.
+    type: ${EVENT_STORAGE_TYPE:local}
+    local:
+      root: ${EVENT_STORAGE_LOCAL_ROOT:./uploads}
 
 eureka:
   client:

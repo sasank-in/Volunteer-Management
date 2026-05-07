@@ -1,6 +1,8 @@
 /backend/target/
 /backend/.env
 /backend/backend_run.log
+/backend/event-service/uploads/
+/backend/uploads/
 /frontend/node_modules/
 /frontend/dist/
 /frontend/.env
@@ -16,3 +18,5 @@
 .project
 .settings/
 *.db
+
+.qodo/

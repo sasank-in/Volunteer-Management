@@ -6,6 +6,12 @@ import { fileURLToPath } from 'node:url'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // sockjs-client and stomp/stompjs reference Node-only globals (global,
+  // process.env). Define them so the bundle doesn't crash at boot in browsers.
+  define: {
+    global: 'globalThis',
+    'process.env': {},
+  },
   resolve: {
     alias: {
       '@': path.resolve(fileURLToPath(new URL('./src', import.meta.url))),

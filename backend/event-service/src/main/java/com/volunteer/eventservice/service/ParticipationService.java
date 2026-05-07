@@ -18,16 +18,19 @@ public class ParticipationService {
   private final EventRepository eventRepository;
   private final EventService eventService;
   private final NotificationDispatchService notificationDispatchService;
+  private final EventLiveBroadcaster liveBroadcaster;
 
   public ParticipationService(
       ParticipationRepository participationRepository,
       EventRepository eventRepository,
       EventService eventService,
-      NotificationDispatchService notificationDispatchService) {
+      NotificationDispatchService notificationDispatchService,
+      EventLiveBroadcaster liveBroadcaster) {
     this.participationRepository = participationRepository;
     this.eventRepository = eventRepository;
     this.eventService = eventService;
     this.notificationDispatchService = notificationDispatchService;
+    this.liveBroadcaster = liveBroadcaster;
   }
 
   @Transactional
@@ -58,6 +61,11 @@ public class ParticipationService {
     participation.setStatus(ParticipationStatus.REGISTERED);
 
     Participation saved = participationRepository.save(participation);
+
+    // Re-read post-reserveSlot so the broadcast carries up-to-date counts/status.
+    Event fresh = eventService.getEventById(eventId);
+    liveBroadcaster.broadcast(fresh, EventLiveBroadcaster.Kind.REGISTERED);
+
     notificationDispatchService.sendRegistrationNotification(
         event,
         volunteerId,
@@ -84,6 +92,8 @@ public class ParticipationService {
     eventRepository.releaseSlot(eventId);
 
     Event event = eventService.getEventById(eventId);
+    liveBroadcaster.broadcast(event, EventLiveBroadcaster.Kind.CANCELLED);
+
     notificationDispatchService.sendCancellationNotification(
         event,
         volunteerId,

@@ -32,11 +32,11 @@ spring:
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
-            - Path=/api/users/**,/api/auth/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html
+            - Path=/api/users/**,/api/auth/**,/api/admin/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html
         - id: event-service
           uri: lb://EVENT-SERVICE
           predicates:
-            - Path=/api/events/**,/api/participations/**,/api/feedbacks/**
+            - Path=/api/events/**,/api/participations/**,/api/feedbacks/**,/api/public/events/**,/uploads/**
         - id: notification-service
           uri: lb://NOTIFICATION-SERVICE
           predicates:

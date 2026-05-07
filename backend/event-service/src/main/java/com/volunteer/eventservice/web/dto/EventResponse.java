@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public class EventResponse {
   private UUID id;
+  private String slug;
   private String title;
   private String description;
   private String location;
@@ -17,6 +18,7 @@ public class EventResponse {
   private String organizerName;
   private EventStatus status;
   private Double averageRating;
+  private String coverImageUrl;
   private Instant createdAt;
   private Instant updatedAt;
 
@@ -140,5 +142,21 @@ public class EventResponse {
 
   public void setUpdatedAt(Instant updatedAt) {
     this.updatedAt = updatedAt;
+  }
+
+  public String getSlug() {
+    return slug;
+  }
+
+  public void setSlug(String slug) {
+    this.slug = slug;
+  }
+
+  public String getCoverImageUrl() {
+    return coverImageUrl;
+  }
+
+  public void setCoverImageUrl(String coverImageUrl) {
+    this.coverImageUrl = coverImageUrl;
   }
 }

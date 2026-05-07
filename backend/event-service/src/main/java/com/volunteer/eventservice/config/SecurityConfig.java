@@ -32,7 +32,10 @@ public class SecurityConfig {
                 "/actuator/health/**",
                 "/actuator/info",
                 "/actuator/prometheus",
-                "/api/internal/**")
+                "/api/internal/**",
+                "/api/public/**",
+                "/uploads/**",
+                "/ws/**")
             .permitAll()
             .anyRequest()
             .authenticated())

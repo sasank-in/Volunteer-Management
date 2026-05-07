@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -41,6 +41,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@hooks/useAuth';
+import { useEventLive } from '@hooks/useEventLive';
 import apiService from '@services/api';
 import MainLayout from '@components/Layout';
 import { useToast } from '@components/Toast';
@@ -93,6 +94,26 @@ const EventDetailPage: React.FC = () => {
     queryFn: () => apiService.getEventFeedback(eventId!),
     enabled: !!eventId,
   });
+
+  // Live updates: patch the cached event when registrations come in from
+  // other users. Refresh participant list when someone else acts.
+  const live = useEventLive(eventId);
+  useEffect(() => {
+    if (!live || !eventId) return;
+    queryClient.setQueryData<typeof event>(['event', eventId], (current) =>
+      current
+        ? {
+            ...current,
+            registeredVolunteers: live.registeredVolunteers,
+            requiredVolunteers: live.requiredVolunteers,
+            status: live.status,
+          }
+        : current,
+    );
+    if (user?.role === 'ORGANIZER' || user?.role === 'ADMIN') {
+      queryClient.invalidateQueries({ queryKey: ['event-participants', eventId] });
+    }
+  }, [live, eventId, queryClient, user?.role]);
 
   const invalidateAfterParticipationChange = () => {
     queryClient.invalidateQueries({ queryKey: ['event', eventId] });
@@ -246,32 +267,64 @@ const EventDetailPage: React.FC = () => {
     <MainLayout>
       <Container maxWidth="lg">
         {/* Back Button */}
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/events')}
-          sx={{ mb: 3 }}
-        >
-          Back to Events
-        </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/events')}>
+            Back to Events
+          </Button>
+          {event.slug && (
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={async () => {
+                const url = `${window.location.origin}/e/${event.slug}`;
+                try {
+                  await navigator.clipboard.writeText(url);
+                  showToast('Public link copied to clipboard.', 'success');
+                } catch {
+                  showToast(`Public link: ${url}`, 'info');
+                }
+              }}
+            >
+              Share public link
+            </Button>
+          )}
+        </Box>
 
         <Grid container spacing={4}>
           {/* Main Content */}
           <Grid item xs={12} md={8}>
             {/* Event Header */}
             <Card sx={{ mb: 3 }}>
+              {event.coverImageUrl && (
+                <Box
+                  component="img"
+                  src={apiService.resolveImageUrl(event.coverImageUrl)}
+                  alt=""
+                  sx={{
+                    display: 'block',
+                    width: '100%',
+                    height: { xs: 180, sm: 240 },
+                    objectFit: 'cover',
+                  }}
+                />
+              )}
               <Box
                 sx={{
                   p: 3,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
+                  bgcolor: event.coverImageUrl ? 'background.paper' : 'primary.dark',
+                  color: event.coverImageUrl ? 'text.primary' : 'primary.contrastText',
+                  borderTop: event.coverImageUrl ? '1px solid' : 'none',
+                  borderColor: 'divider',
                 }}
               >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', mb: 2, gap: 2 }}>
                   <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                    <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
                       {event.title}
                     </Typography>
-                    <Typography variant="body1">by {event.organizerName}</Typography>
+                    <Typography variant="body2" sx={{ opacity: event.coverImageUrl ? 0.7 : 0.85 }}>
+                      Hosted by {event.organizerName}
+                    </Typography>
                   </Box>
                   <Chip
                     label={getEventStatusLabel(event.status)}
@@ -281,6 +334,7 @@ const EventDetailPage: React.FC = () => {
                       color: 'white',
                       fontWeight: 700,
                       px: 1,
+                      flexShrink: 0,
                     }}
                   />
                 </Box>
@@ -343,7 +397,44 @@ const EventDetailPage: React.FC = () => {
                         mb: 1,
                       }}
                     >
-                      <Typography variant="body2">Progress</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body2">Progress</Typography>
+                        {live && (
+                          <Box
+                            component="span"
+                            sx={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              px: 0.75,
+                              py: 0.125,
+                              borderRadius: 0.5,
+                              bgcolor: 'success.main',
+                              color: 'success.contrastText',
+                              fontSize: '0.625rem',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.04em',
+                            }}
+                          >
+                            <Box
+                              component="span"
+                              sx={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: '50%',
+                                bgcolor: 'success.contrastText',
+                                animation: 'pulse 1.5s ease-in-out infinite',
+                                '@keyframes pulse': {
+                                  '0%, 100%': { opacity: 1 },
+                                  '50%': { opacity: 0.4 },
+                                },
+                              }}
+                            />
+                            Live
+                          </Box>
+                        )}
+                      </Box>
                       <Typography
                         variant="body2"
                         sx={{ fontWeight: 600, color: 'primary.main' }}

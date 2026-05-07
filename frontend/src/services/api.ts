@@ -11,6 +11,8 @@ import {
   CreateFeedbackRequest,
   UserAccount,
   Notification,
+  AuditLogEntry,
+  PageResponse,
 } from '@store/../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
@@ -144,6 +146,15 @@ class ApiService {
     await this.api.delete(`/users/${userId}`);
   }
 
+  async getAuditLog(page = 0, size = 25, actionPrefix?: string): Promise<PageResponse<AuditLogEntry>> {
+    const response = await this.api.get<PageResponse<AuditLogEntry>>('/admin/audit-log', {
+      params: actionPrefix
+        ? { page, size, actionPrefix }
+        : { page, size },
+    });
+    return response.data;
+  }
+
   async getAllEvents(upcoming?: boolean): Promise<Event[]> {
     const params = upcoming !== undefined ? { upcoming } : {};
     const response = await this.api.get<Event[]>('/events', { params });
@@ -167,6 +178,25 @@ class ApiService {
 
   async deleteEvent(eventId: string): Promise<void> {
     await this.api.delete(`/events/${eventId}`);
+  }
+
+  async uploadEventCover(eventId: string, file: File): Promise<{ coverImageUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await this.api.post<{ coverImageUrl: string }>(
+      `/events/${eventId}/cover`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    );
+    return response.data;
+  }
+
+  /** Resolves a cover image URL — strips /api so /uploads/x.jpg goes to the gateway root. */
+  resolveImageUrl(coverImageUrl: string | null | undefined): string | undefined {
+    if (!coverImageUrl) return undefined;
+    if (coverImageUrl.startsWith('http')) return coverImageUrl;
+    const base = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api').replace(/\/api\/?$/, '');
+    return `${base}${coverImageUrl}`;
   }
 
   async getMyOrganizedEvents(): Promise<Event[]> {

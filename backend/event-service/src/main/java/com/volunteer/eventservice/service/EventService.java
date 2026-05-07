@@ -23,16 +23,19 @@ public class EventService {
   private final FeedbackRepository feedbackRepository;
   private final ParticipationRepository participationRepository;
   private final NotificationDispatchService notificationDispatchService;
+  private final SlugGenerator slugGenerator;
 
   public EventService(
       EventRepository eventRepository,
       FeedbackRepository feedbackRepository,
       ParticipationRepository participationRepository,
-      NotificationDispatchService notificationDispatchService) {
+      NotificationDispatchService notificationDispatchService,
+      SlugGenerator slugGenerator) {
     this.eventRepository = eventRepository;
     this.feedbackRepository = feedbackRepository;
     this.participationRepository = participationRepository;
     this.notificationDispatchService = notificationDispatchService;
+    this.slugGenerator = slugGenerator;
   }
 
   @Transactional
@@ -40,6 +43,7 @@ public class EventService {
   public Event createEvent(CreateEventRequest request, UUID organizerId, String organizerName, String organizerEmail) {
     Event event = new Event();
     event.setTitle(request.getTitle());
+    event.setSlug(slugGenerator.uniqueFromTitle(request.getTitle()));
     event.setDescription(request.getDescription());
     event.setLocation(request.getLocation());
     event.setEventDate(request.getEventDate());
@@ -48,6 +52,22 @@ public class EventService {
     event.setOrganizerName(organizerName);
     event.setOrganizerEmail(organizerEmail);
     event.setStatus(EventStatus.OPEN);
+    return eventRepository.save(event);
+  }
+
+  public Event getEventBySlug(String slug) {
+    return eventRepository.findBySlug(slug)
+        .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+  }
+
+  @Transactional
+  @CacheEvict(value = "events", allEntries = true)
+  public Event setCoverImageUrl(UUID eventId, UUID requesterId, boolean isAdmin, String coverImageUrl) {
+    Event event = getEventById(eventId);
+    if (!isAdmin && !event.getOrganizerId().equals(requesterId)) {
+      throw new IllegalArgumentException("Only the organizer can change this event's cover image");
+    }
+    event.setCoverImageUrl(coverImageUrl);
     return eventRepository.save(event);
   }
 

@@ -33,7 +33,7 @@ import StatCard from '@components/StatCard';
 import StatusChip from '@components/StatusChip';
 import { useAuth } from '@hooks/useAuth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { formatDate } from '@utils/helpers';
+import { formatDate, formatDateRelative, formatDateTime } from '@utils/helpers';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -44,6 +44,8 @@ const AdminDashboard = () => {
   const [usersRowsPerPage, setUsersRowsPerPage] = useState(25);
   const [eventsPage, setEventsPage] = useState(0);
   const [eventsRowsPerPage, setEventsRowsPerPage] = useState(25);
+  const [auditPage, setAuditPage] = useState(0);
+  const [auditRowsPerPage, setAuditRowsPerPage] = useState(25);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -57,6 +59,14 @@ const AdminDashboard = () => {
     queryKey: ['admin', 'events'],
     queryFn: () => apiService.getAllEvents(),
     enabled: user?.role === 'ADMIN',
+  });
+
+  // Only fetch the audit log when the Activity tab is open — it can grow large.
+  const auditQuery = useQuery({
+    queryKey: ['admin', 'audit-log', auditPage, auditRowsPerPage],
+    queryFn: () => apiService.getAuditLog(auditPage, auditRowsPerPage),
+    enabled: user?.role === 'ADMIN' && tabValue === 2,
+    placeholderData: (prev) => prev,
   });
 
   const users: UserAccount[] = usersQuery.data ?? [];
@@ -194,6 +204,7 @@ const AdminDashboard = () => {
           <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
             <Tab label="Users" />
             <Tab label="Events" />
+            <Tab label="Activity" />
           </Tabs>
 
         {tabValue === 0 && (
@@ -333,6 +344,105 @@ const AdminDashboard = () => {
               />
             </TableContainer>
           )
+        )}
+
+        {tabValue === 2 && (
+          <Box>
+            {auditQuery.isError ? (
+              <Box sx={{ p: 3 }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  Could not load audit log.
+                </Typography>
+                <Button size="small" variant="outlined" onClick={() => auditQuery.refetch()}>
+                  Retry
+                </Button>
+              </Box>
+            ) : auditQuery.data && auditQuery.data.content.length === 0 ? (
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <Typography variant="body1" sx={{ mb: 0.5 }}>
+                  No admin actions recorded yet
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Role changes, profile edits and deletions made by admins will appear here.
+                </Typography>
+              </Box>
+            ) : (
+              <TableContainer>
+                <Table size="small" sx={{ minWidth: 720 }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ width: 180 }}>When</TableCell>
+                      <TableCell sx={{ width: 160 }}>Actor</TableCell>
+                      <TableCell sx={{ width: 180 }}>Action</TableCell>
+                      <TableCell sx={{ width: 140 }}>Target</TableCell>
+                      <TableCell>Details</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {(auditQuery.data?.content ?? []).map((entry) => (
+                      <TableRow key={entry.id} hover>
+                        <TableCell>
+                          <Typography variant="body2">{formatDateTime(entry.occurredAt)}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {formatDateRelative(entry.occurredAt)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {entry.actorUsername}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 700,
+                              letterSpacing: '0.04em',
+                              fontFamily: 'monospace',
+                            }}
+                          >
+                            {entry.action}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {entry.targetType ? (
+                            <Typography
+                              variant="caption"
+                              sx={{ fontFamily: 'monospace', color: 'text.secondary' }}
+                            >
+                              {entry.targetType}
+                              {entry.targetId ? `:${entry.targetId.slice(0, 8)}` : ''}
+                            </Typography>
+                          ) : (
+                            <Typography variant="caption" color="text.disabled">
+                              —
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" color="text.secondary">
+                            {entry.details ?? '—'}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <TablePagination
+                  component="div"
+                  count={auditQuery.data?.totalElements ?? 0}
+                  page={auditPage}
+                  onPageChange={(_, p) => setAuditPage(p)}
+                  rowsPerPage={auditRowsPerPage}
+                  onRowsPerPageChange={(e) => {
+                    setAuditRowsPerPage(parseInt(e.target.value, 10));
+                    setAuditPage(0);
+                  }}
+                  rowsPerPageOptions={[10, 25, 50, 100]}
+                />
+              </TableContainer>
+            )}
+          </Box>
         )}
         </Paper>
 

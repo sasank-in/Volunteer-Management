@@ -15,6 +15,9 @@ public class Event {
   @Column(nullable = false, length = 200)
   private String title;
 
+  @Column(nullable = false, unique = true, length = 180)
+  private String slug;
+
   @Column(columnDefinition = "TEXT")
   private String description;
 
@@ -52,6 +55,9 @@ public class Event {
   @Column(name = "reminder_sent_at")
   private Instant reminderSentAt;
 
+  @Column(name = "cover_image_url", length = 500)
+  private String coverImageUrl;
+
   @PrePersist
   public void onCreate() {
     Instant now = Instant.now();
@@ -85,6 +91,14 @@ public class Event {
 
   public void setTitle(String title) {
     this.title = title;
+  }
+
+  public String getSlug() {
+    return slug;
+  }
+
+  public void setSlug(String slug) {
+    this.slug = slug;
   }
 
   public String getDescription() {
@@ -173,5 +187,13 @@ public class Event {
 
   public void setReminderSentAt(Instant reminderSentAt) {
     this.reminderSentAt = reminderSentAt;
+  }
+
+  public String getCoverImageUrl() {
+    return coverImageUrl;
+  }
+
+  public void setCoverImageUrl(String coverImageUrl) {
+    this.coverImageUrl = coverImageUrl;
   }
 }

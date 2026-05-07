@@ -1,6 +1,8 @@
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\config\CachingConfig.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\config\CircuitBreakerConfiguration.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\config\SecurityConfig.java
+C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\config\UploadsResourceConfig.java
+C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\config\WebSocketConfig.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\domain\Event.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\domain\EventStatus.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\domain\Feedback.java
@@ -15,6 +17,7 @@ C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunte
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\repository\FeedbackRepository.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\repository\NotificationOutboxRepository.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\repository\ParticipationRepository.java
+C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\EventLiveBroadcaster.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\EventReminderService.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\EventService.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\FeedbackService.java
@@ -22,6 +25,9 @@ C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunte
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\NotificationDispatchService.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\NotificationOutboxService.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\ParticipationService.java
+C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\SlugGenerator.java
+C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\storage\FileStorage.java
+C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\storage\LocalFileStorage.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\service\UserSyncService.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\ApiExceptionHandler.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\dto\CreateEventRequest.java
@@ -29,8 +35,11 @@ C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunte
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\dto\FeedbackRequest.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\dto\FeedbackResponse.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\dto\ParticipationResponse.java
+C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\dto\PublicEventResponse.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\dto\UpdateEventRequest.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\EventController.java
+C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\EventCoverUploadController.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\FeedbackController.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\InternalUserSyncController.java
 C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\ParticipationController.java
+C:\java-pro\Volunteer-Management\backend\event-service\src\main\java\com\volunteer\eventservice\web\PublicEventController.java

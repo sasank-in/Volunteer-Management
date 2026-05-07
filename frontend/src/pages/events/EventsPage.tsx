@@ -116,6 +116,21 @@ const EventsPage: React.FC = () => {
       }}
     >
       <CardActionArea onClick={() => navigate(`/events/${event.id}`)} sx={{ height: '100%' }}>
+        {event.coverImageUrl && (
+          <Box
+            component="img"
+            src={apiService.resolveImageUrl(event.coverImageUrl)}
+            alt=""
+            sx={{
+              display: 'block',
+              width: '100%',
+              height: 140,
+              objectFit: 'cover',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}
+          />
+        )}
         {/* Header with Status and Rating */}
         <Box
           sx={{

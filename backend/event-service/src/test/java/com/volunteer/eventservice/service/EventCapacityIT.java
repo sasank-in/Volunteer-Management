@@ -37,7 +37,9 @@ class EventCapacityIT extends IntegrationTestBase {
 
   private Event newOpenEvent(int capacity) {
     Event e = new Event();
-    e.setTitle("Capacity Test " + System.nanoTime());
+    long stamp = System.nanoTime();
+    e.setTitle("Capacity Test " + stamp);
+    e.setSlug("capacity-test-" + stamp);
     e.setDescription("Test");
     e.setLocation("Test Hall");
     e.setEventDate(LocalDateTime.now().plusDays(7));

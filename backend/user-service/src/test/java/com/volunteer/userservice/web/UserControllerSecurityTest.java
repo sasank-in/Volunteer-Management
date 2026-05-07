@@ -18,8 +18,10 @@ class UserControllerSecurityTest {
     assertHasAdminGuard(UserController.class.getMethod("getAll", com.volunteer.userservice.domain.Role.class));
     assertHasAdminGuard(UserController.class.getMethod("getById", UUID.class));
     assertHasAdminGuard(UserController.class.getMethod("update", UUID.class,
-        com.volunteer.userservice.web.dto.UpdateUserRequest.class));
-    assertHasAdminGuard(UserController.class.getMethod("delete", UUID.class));
+        com.volunteer.userservice.web.dto.UpdateUserRequest.class,
+        org.springframework.security.core.Authentication.class));
+    assertHasAdminGuard(UserController.class.getMethod("delete", UUID.class,
+        org.springframework.security.core.Authentication.class));
   }
 
   @Test

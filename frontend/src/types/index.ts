@@ -35,6 +35,7 @@ export interface RegisterRequest {
 // Event types
 export interface Event {
   id: string;
+  slug: string;
   title: string;
   description: string;
   location: string;
@@ -45,6 +46,7 @@ export interface Event {
   organizerName: string;
   status: EventStatus;
   averageRating?: number;
+  coverImageUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -116,6 +118,25 @@ export type NotificationType =
   | 'EVENT_COMPLETED';
 
 export type NotificationStatus = 'PENDING' | 'SENT' | 'FAILED' | 'READ';
+
+export interface AuditLogEntry {
+  id: string;
+  occurredAt: string;
+  actorId: string;
+  actorUsername: string;
+  action: string;
+  targetType?: string | null;
+  targetId?: string | null;
+  details?: string | null;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
 
 // API Response types
 export interface ApiResponse<T> {

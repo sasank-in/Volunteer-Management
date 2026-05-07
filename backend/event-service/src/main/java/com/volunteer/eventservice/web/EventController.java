@@ -93,6 +93,8 @@ public class EventController {
         event.getCreatedAt(),
         event.getUpdatedAt()
     );
+    response.setSlug(event.getSlug());
+    response.setCoverImageUrl(event.getCoverImageUrl());
     Double avgRating = eventService.getAverageRating(event.getId());
     response.setAverageRating(avgRating);
     return response;

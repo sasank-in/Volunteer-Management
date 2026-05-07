@@ -59,7 +59,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           {
             label: 'Dashboard',
             icon: <DashboardIcon />,
-            path: '/dashboard',
+            path: user?.role === 'ORGANIZER' ? '/organizer' : '/dashboard',
           },
         ]
       : []),
