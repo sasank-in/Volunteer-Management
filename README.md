@@ -1,205 +1,230 @@
 # Volunteer Management Platform
 
-A microservices-based platform for managing volunteer events, participation tracking, and notifications. Built with Spring Cloud, PostgreSQL, and JWT authentication.
-
-**✨ Enhanced with Enterprise-Grade Resilience & Performance Features** (March 2026)
+A microservices-based platform for coordinating volunteer events, participation, and notifications. Spring Boot + PostgreSQL + React.
 
 ## Architecture
 
-### Microservices
-- **Config Server** (8888): Centralized configuration management
-- **Discovery Server** (8761): Eureka service registry
-- **API Gateway** (8080): Single entry point with rate limiting & caching
-- **User Service** (8081): Authentication and user management with JWT
-- **Event Service** (8082): Event management with circuit breaker & caching
-- **Notification Service** (8083): Async email/in-app notifications
+Six Spring Boot services + a React frontend, all gated by an API gateway.
 
-### Technology Stack
-- Java 21
-- Spring Boot 3.4.2
-- Spring Cloud 2024.0.1
-- **Resilience4j 2.1.0** (Circuit Breaker, Rate Limiting)
-- Spring Security with JWT
-- PostgreSQL with Flyway migrations
-- Spring Async & Caching
-- Maven
+| Service | Port | Role |
+|---|---|---|
+| `config-server` | 8888 | Centralised Spring Cloud config (reads from `backend/config-repo/`) |
+| `discovery-server` | 8761 | Eureka service registry |
+| `api-gateway` | 8080 | Single entry point — CORS, rate limiting on `/api/auth/**` and `/api/participations/**` |
+| `user-service` | 8081 | Auth (JWT + httpOnly refresh cookie + CSRF), accounts, password reset |
+| `event-service` | 8082 | Events, participation, feedback. Atomic capacity reservation. |
+| `notification-service` | 8083 | Async email + in-app notifications |
+| `frontend` | 5173 | React + TypeScript + Vite + MUI |
 
-### Key Enhancements (March 2026)
+### Stack
 
-| Feature | Benefit | Where |
-|---------|---------|-------|
-| **Circuit Breaker** | Fail-fast, prevent cascading failures | Event Service |
-| **Async Notifications** | 50x faster responses (2-5s → 100ms) | Notification Service |
-| **Rate Limiting** | Protect backends from overload | API Gateway |
-| **Response Caching** | 95% faster reads (200ms → 5ms) | Event Service |
+**Backend:** Java 21, Spring Boot 3.4.2, Spring Cloud 2024.0.1, PostgreSQL 16, Flyway, Resilience4j (circuit breaker + rate limiter), Micrometer + Prometheus, Logstash JSON encoder.
 
-**See [RESILIENCE_AND_PERFORMANCE.md](docs/RESILIENCE_AND_PERFORMANCE.md) for detailed reference.**
+**Frontend:** React 18, TypeScript, Vite 5, MUI 5 (custom corporate theme), Zustand, React Query, axios.
+
+**Infra:** Docker Compose (Postgres, Redis, Prometheus, Grafana). Tests use Testcontainers.
 
 ## Prerequisites
 
 - JDK 21
-- PostgreSQL 14+
-- Maven 3.9+ (or use included wrapper)
+- Maven 3.9+
+- Docker (for Postgres + integration tests)
+- Node 20+ + npm (for frontend)
 
-## Setup
+## Quick start
 
-### 1. Database Setup
+### 1. Bring up infra
 
-Create three PostgreSQL databases:
+```bash
+docker compose -f infra/docker-compose.yml up -d db redis
+```
+
+### 2. Configure environment
+
+```bash
+cp .env.example .env
+# Edit .env: set DB_USER, DB_PASSWORD, JWT_SECRET (32-byte Base64), and CORS / mail values.
+```
+
+Generate a JWT secret:
+```bash
+openssl rand -base64 32
+```
+
+### 3. Create the three databases
+
 ```sql
 CREATE DATABASE volunteer_user_db;
 CREATE DATABASE volunteer_event_db;
 CREATE DATABASE volunteer_notification_db;
 ```
 
-Grant permissions to your database user and update credentials in `.env` file.
+(Or run them manually via your psql client. Flyway will create the schemas on first boot.)
 
-### 2. Configure Environment
-
-Update `.env` file with your database credentials:
-```
-DB_USER=your_username
-DB_PASSWORD=your_password
-JWT_SECRET=your_jwt_secret
-```
-
-### 3. Start Services
+### 4. Start backend services
 
 **Windows:**
-```bash
+```bat
 start.bat
 ```
 
-**Linux/Mac:**
+**Linux / macOS:**
 ```bash
 cd backend
-
-# Start services in order
-./mvnw -pl config-server spring-boot:run &
+( cd config-server     && mvn spring-boot:run ) &
 sleep 15
-./mvnw -pl discovery-server spring-boot:run &
-sleep 15
-./mvnw -pl user-service spring-boot:run &
-./mvnw -pl event-service spring-boot:run &
-./mvnw -pl notification-service spring-boot:run &
-./mvnw -pl api-gateway spring-boot:run &
+( cd discovery-server  && mvn spring-boot:run ) &
+sleep 10
+( cd user-service          && mvn spring-boot:run ) &
+( cd event-service         && mvn spring-boot:run ) &
+( cd notification-service  && mvn spring-boot:run ) &
+( cd api-gateway           && mvn spring-boot:run ) &
 ```
 
-### 4. Verify
+### 5. Start the frontend
 
-- Discovery Server: http://localhost:8761
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend runs at `http://localhost:5173`.
+
+### 6. Sign in with seeded demo accounts
+
+The `user-service` seeds three demo accounts on first startup (toggle with `DEMO_SEED_ENABLED=false`):
+
+| Role | Email | Password |
+|---|---|---|
+| Volunteer | `volunteer@example.com` | `Demo-Volunteer-1` |
+| Organizer | `organizer@example.com` | `Demo-Organizer-1` |
+| Admin | `admin@example.com` | `Demo-Admin-1` |
+
+The login page has demo-cred buttons that pre-fill these.
+
+## Verification
+
+- Eureka: http://localhost:8761
 - API Gateway: http://localhost:8080
-- Swagger UI: http://localhost:8081/swagger-ui.html
+- Swagger (user-service): http://localhost:8081/swagger-ui.html
+- Prometheus (if started): http://localhost:9090
+- Grafana (if started): http://localhost:3001
 
-## API Documentation
+## Configuration reference
 
-All APIs are accessible through the API Gateway at `http://localhost:8080`
+All env vars are documented in [`.env.example`](.env.example). Highlights:
 
-### Authentication
-```
-POST /api/auth/register - Register new user
-POST /api/auth/login - Login and get JWT token
-POST /api/auth/refresh - Refresh access token
-```
-
-### User Management
-```
-GET /api/users/me - Get current user profile
-GET /api/users - List all users
-PUT /api/users/{id} - Update user
-```
-
-### Event Management
-```
-POST /api/events - Create event
-GET /api/events - List all events
-GET /api/events/{id} - Get event details
-PUT /api/events/{id} - Update event
-DELETE /api/events/{id} - Delete event
-```
-
-### Participation
-```
-POST /api/participations/events/{eventId}/register - Register for event
-POST /api/participations/events/{eventId}/cancel - Cancel participation
-GET /api/participations/my-participations - Get participation history
-```
-
-### Notifications
-```
-GET /api/notifications/my-notifications - Get notifications
-GET /api/notifications/unread-count - Get unread count
-PUT /api/notifications/{id}/read - Mark as read
-```
-
-For complete API documentation, visit Swagger UI at http://localhost:8081/swagger-ui.html
-
-## Project Structure
-
-```
-├── backend/
-│   ├── config-server/            # Configuration server
-│   ├── config-repo/              # Configuration files
-│   ├── discovery-server/         # Eureka service registry
-│   ├── api-gateway/              # API Gateway
-│   ├── user-service/             # User management & auth
-│   ├── event-service/            # Event & participation
-│   └── notification-service/     # Notifications
-├── docs/                         # Additional documentation
-├── .env                          # Environment configuration
-├── start.bat                     # Service startup script
-└── README.md                     # This file
-```
-## Documentation
-
-### Core Documentation
-- **[API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md)** - Complete API reference with examples
-- **[TESTING_GUIDE.md](docs/TESTING_GUIDE.md)** - Testing procedures and scenarios
-- **[DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)** - Production deployment options
-
-### Resilience & Performance (NEW ✨)
-- **[RESILIENCE_AND_PERFORMANCE.md](docs/RESILIENCE_AND_PERFORMANCE.md)** - Deep dive into enhanced features
-  - Circuit breaker patterns and configuration
-  - Async notification processing
-  - Rate limiting strategies
-  - Response caching architecture
-  - Monitoring and debugging
-
-- **[QUICK_START_RESILIENCE.md](docs/QUICK_START_RESILIENCE.md)** - Quick reference guide
-  - How to use each feature
-  - Configuration examples
-  - Common patterns and anti-patterns
-  - Troubleshooting tips
-
-- **[ARCHITECTURE_ENHANCEMENT_OVERVIEW.md](docs/ARCHITECTURE_ENHANCEMENT_OVERVIEW.md)** - Visual architecture
-  - Before/after diagrams
-  - Component interactions
-  - Performance metrics
-  - Thread pool visualizations
-
-- **[IMPLEMENTATION_SUMMARY.md](docs/IMPLEMENTATION_SUMMARY.md)** - Change log
-  - Files modified and created
-  - Feature configuration details
-  - Build and deployment notes
-## Development
-
-### Build
-```bash
-cd backend
-./mvnw clean install
-```
-
-### Run Tests
-```bash
-./mvnw test
-```
+| Var | Default | Purpose |
+|---|---|---|
+| `DB_USER` / `DB_PASSWORD` | — | Single Postgres user across all 3 dbs |
+| `JWT_SECRET` | — | Base64 of ≥32 random bytes (HS256) |
+| `JWT_EXPIRES_IN` | 3600 | Access-token TTL (seconds) |
+| `AUTH_COOKIE_SECURE` | `false` | Set `true` in prod (HTTPS). Refresh cookie is HttpOnly + path-scoped to `/api/auth`. |
+| `AUTH_COOKIE_SAME_SITE` | `Lax` | `Strict` recommended in prod |
+| `APP_CORS_ALLOWED_ORIGINS` | `localhost:3000,5173` | Comma-separated frontend origins |
+| `APP_CACHE_TYPE` | `in-memory` | Set `redis` once running >1 event-service instance |
+| `REDIS_HOST` / `REDIS_PORT` | `localhost`/`6379` | Used when `APP_CACHE_TYPE=redis` |
+| `MAIL_PROVIDER` | `smtp` | `log` for dev/CI |
+| `DEMO_SEED_ENABLED` | `true` | Disable in production |
+| `USER_SYNC_TOKEN` | `dev-sync-token` | Shared between user→event service for denormalized email/name sync |
+| `LOG_FORMAT` | text | `SPRING_PROFILES_ACTIVE=json` for structured logs |
 
 ## Security
 
-- JWT-based authentication
-- BCrypt password hashing
-- Role-based access control (VOLUNTEER, ORGANIZER, ADMIN)
-- Stateless session management
+- **Auth**: JWT (HS256) access tokens, HttpOnly refresh cookie scoped to `/api/auth`, CSRF protection on cookie endpoints (`CookieCsrfTokenRepository`).
+- **Password rules**: ≥10 characters, must include letters and digits, denylist of common passwords. Validated server-side via `@StrongPassword` Bean Validation.
+- **Account lockout**: 5 failed logins → 15 min temporary lock (configurable via `app.login.{max-attempts,lockout-minutes}`).
+- **Forgot password**: returns identical 200 OK regardless of email existence (no enumeration). Reset token is sent via notification-service email — never returned in API responses.
+- **Roles**: `VOLUNTEER` / `ORGANIZER` / `ADMIN`. Spring `@PreAuthorize("hasRole('ADMIN')")` guards admin endpoints.
+- **Rate limiting**: Resilience4j-based gateway filters on `/api/auth/**` (50/min) and `/api/participations/**` (100/min).
+- **Secrets**: `.env` is gitignored. Never commit. For prod, rotate JWT secret + DB password + mail credentials.
+
+## Operations
+
+### Tests
+
+```bash
+# Unit tests (no Docker needed)
+( cd backend/user-service && mvn test )
+
+# Integration tests (Testcontainers — Docker required)
+( cd backend/user-service  && mvn verify )
+( cd backend/event-service && mvn verify )
+```
+
+### Observability
+
+Each business service exposes Prometheus metrics at `/actuator/prometheus`. Scrape config and 5 baseline alert rules (ServiceDown, HighErrorRate, SlowEndpoint, CircuitBreakerOpen, DBPoolNearExhausted) are in `infra/prometheus.yml` and `infra/alerts.yml`.
+
+Bring up the full observability stack:
+```bash
+docker compose -f infra/docker-compose.yml up -d prometheus grafana
+```
+
+### Health probes
+
+Each service exposes:
+- `/actuator/health` — overall status
+- `/actuator/health/liveness` — for Kubernetes liveness probe
+- `/actuator/health/readiness` — includes DB connectivity for readiness probe
+
+### Token cleanup
+
+`user-service` has a scheduled hourly job (`TokenCleanupJob`) that prunes expired refresh tokens and tokens revoked/used > 7 days ago. Logs counts when non-zero.
+
+### Cross-service user sync
+
+When a user updates their email or username, `user-service` POSTs to `event-service`'s `POST /api/internal/users/sync` (gated by `X-Internal-Token`) which updates the denormalized `organizer_email` / `volunteer_email` columns. Best-effort — failures are logged. Production upgrade: replace with an outbox table + async flusher.
+
+## Project layout
+
+```
+.
+├── backend/
+│   ├── pom.xml                       # Aggregator parent POM
+│   ├── config-repo/                  # Centralised service configs
+│   │   ├── api-gateway.yml
+│   │   ├── user-service.yml
+│   │   ├── event-service.yml
+│   │   └── notification-service.yml
+│   ├── config-server/                # Spring Cloud Config
+│   ├── discovery-server/             # Eureka
+│   ├── api-gateway/                  # Spring Cloud Gateway + rate limiting
+│   ├── user-service/                 # Auth, users, password reset
+│   ├── event-service/                # Events, participation, feedback
+│   └── notification-service/         # Email + in-app notifications
+├── frontend/                         # React + TS + Vite app
+│   ├── src/
+│   │   ├── components/               # Layout, AuthLayout, PageHeader, StatusChip, etc.
+│   │   ├── pages/                    # Route components
+│   │   ├── services/api.ts           # axios + auth flow
+│   │   ├── store/                    # Zustand stores
+│   │   ├── theme/                    # MUI theme (corporate B2B)
+│   │   └── types/                    # Shared TS types
+│   └── public/favicon.svg
+├── infra/
+│   ├── docker-compose.yml            # Postgres, Redis, Prometheus, Grafana
+│   ├── prometheus.yml                # Scrape config
+│   └── alerts.yml                    # 5 baseline alert rules
+├── .env.example                      # Env var template
+├── start.bat                         # Windows launcher
+└── README.md
+```
+
+## Known limitations
+
+These are **not** production-ready:
+
+- **Database backups** — none configured. Single Postgres container.
+- **Email provider** — defaults to Gmail SMTP; will be throttled at any meaningful load. Swap `MailSender` impl with SES/SendGrid/Postmark for production.
+- **Cache** — defaults to in-memory; switch to Redis (`APP_CACHE_TYPE=redis`) before scaling event-service horizontally.
+- **CI/CD** — no pipeline configured. Tests do not run on push.
+- **Frontend bundle** — split into 4 chunks but not lazy-loaded per route.
+- **Mobile UX** — tables scroll horizontally on phones; otherwise responsive but unverified at every breakpoint.
+- **Pen test, load test** — neither has been done.
+
+See [CLAUDE.md] (if present) for the chronological record of hardening passes.
 
 ## License
 

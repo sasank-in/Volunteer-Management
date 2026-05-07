@@ -1,15 +1,14 @@
 import React from 'react';
 import {
   Box,
-  Container,
-  Typography,
   Button,
-  Grid,
   Card,
   CardContent,
-  Stack,
+  Container,
   Divider,
-  Chip,
+  Grid,
+  Stack,
+  Typography,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import {
@@ -21,6 +20,7 @@ import {
   Timeline,
   Group,
   Insights,
+  VolunteerActivism as BrandIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@store/index';
@@ -32,167 +32,116 @@ const LandingPage: React.FC = () => {
 
   const primaryCta = isAuthenticated
     ? user?.role === 'ORGANIZER'
-      ? { label: 'Create Event', path: '/events/create' }
-      : { label: user?.role === 'ADMIN' ? 'Manage Events' : 'Browse Events', path: '/events' }
-    : { label: 'Get Started', path: '/register' };
+      ? { label: 'Create event', path: '/events/create' }
+      : { label: user?.role === 'ADMIN' ? 'Manage events' : 'Browse events', path: '/events' }
+    : { label: 'Get started', path: '/register' };
 
   const secondaryCta = isAuthenticated
-    ? { label: 'Browse Events', path: '/events' }
-    : { label: 'Sign In', path: '/login' };
+    ? { label: 'Browse events', path: '/events' }
+    : { label: 'Sign in', path: '/login' };
 
   const features = [
-    {
-      icon: <Security sx={{ fontSize: 30 }} />,
-      title: 'Secure by default',
-      description: 'Role-based access and verified participation history for every event.',
-    },
-    {
-      icon: <Speed sx={{ fontSize: 30 }} />,
-      title: 'Operational clarity',
-      description: 'Track capacity, attendance, and outcomes without manual spreadsheets.',
-    },
-    {
-      icon: <TrendingUp sx={{ fontSize: 30 }} />,
-      title: 'Impact analytics',
-      description: 'Measure volunteer hours and program outcomes in one place.',
-    },
-    {
-      icon: <CheckCircle sx={{ fontSize: 30 }} />,
-      title: 'Reliable coordination',
-      description: 'Automated updates keep organizers and volunteers aligned.',
-    },
+    { icon: <Security fontSize="small" />, title: 'Secure by default', description: 'Role-based access and verified participation history for every event.' },
+    { icon: <Speed fontSize="small" />, title: 'Operational clarity', description: 'Track capacity, attendance, and outcomes without manual spreadsheets.' },
+    { icon: <TrendingUp fontSize="small" />, title: 'Impact analytics', description: 'Measure volunteer hours and program outcomes in one place.' },
+    { icon: <CheckCircle fontSize="small" />, title: 'Reliable coordination', description: 'Automated notifications keep organizers and volunteers aligned.' },
   ];
 
   const steps = [
-    {
-      title: 'Create and publish',
-      description: 'Post events with clear locations, time, and capacity.',
-      icon: <Timeline />,
-    },
-    {
-      title: 'Recruit and confirm',
-      description: 'Volunteers register and organizers track participation.',
-      icon: <Group />,
-    },
-    {
-      title: 'Track outcomes',
-      description: 'Collect feedback and close the loop with reports.',
-      icon: <Insights />,
-    },
+    { title: 'Create and publish', description: 'Post events with clear locations, time, and capacity.', icon: <Timeline /> },
+    { title: 'Recruit and confirm', description: 'Volunteers register and organizers track participation.', icon: <Group /> },
+    { title: 'Track outcomes', description: 'Collect feedback and close the loop with reports.', icon: <Insights /> },
+  ];
+
+  const stats = [
+    { label: 'Active volunteers', value: '12,480' },
+    { label: 'Events this month', value: '142' },
+    { label: 'Completion rate', value: '94%' },
+    { label: 'Avg satisfaction', value: '4.7/5' },
   ];
 
   return (
-    <Box
-      sx={{
-        bgcolor: theme.palette.background.default,
-        color: theme.palette.text.primary,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Background accents */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: -120,
-          left: -120,
-          width: 320,
-          height: 320,
-          borderRadius: '50%',
-          background: `radial-gradient(circle, ${alpha(theme.palette.primary.main, 0.45)}, transparent 70%)`,
-          filter: 'blur(10px)',
-          zIndex: 0,
-        }}
-      />
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 180,
-          right: -120,
-          width: 420,
-          height: 420,
-          borderRadius: '50%',
-          background: `radial-gradient(circle, ${alpha(theme.palette.success.main, 0.35)}, transparent 70%)`,
-          filter: 'blur(6px)',
-          zIndex: 0,
-        }}
-      />
-
-      {/* Nav */}
-      <Box
-        sx={{
-          position: 'relative',
-          zIndex: 1,
-          borderBottom: `1px solid ${alpha(theme.palette.text.primary, 0.08)}`,
-        }}
-      >
+    <Box sx={{ bgcolor: 'background.default', color: 'text.primary' }}>
+      {/* Top nav */}
+      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
-              Volunteer Management
-            </Typography>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              <Button
-                onClick={() => navigate(secondaryCta.path)}
-                sx={{ color: alpha(theme.palette.text.primary, 0.75), fontWeight: 600 }}
-              >
-                {secondaryCta.label}
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => navigate(primaryCta.path)}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ py: 2 }}
+          >
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Box
                 sx={{
-                  bgcolor: theme.palette.primary.main,
-                  color: theme.palette.primary.contrastText,
-                  fontWeight: 700,
-                  '&:hover': { bgcolor: theme.palette.primary.dark },
+                  width: 28,
+                  height: 28,
+                  borderRadius: 1,
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
+                <BrandIcon fontSize="small" />
+              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: '-0.01em' }}>
+                Volunteer Platform
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Button onClick={() => navigate(secondaryCta.path)} sx={{ color: 'text.secondary' }}>
+                {secondaryCta.label}
+              </Button>
+              <Button variant="contained" onClick={() => navigate(primaryCta.path)}>
                 {primaryCta.label}
               </Button>
             </Stack>
-          </Box>
+          </Stack>
         </Container>
       </Box>
 
       {/* Hero */}
-      <Box sx={{ position: 'relative', zIndex: 1, py: { xs: 8, md: 12 } }}>
+      <Box sx={{ py: { xs: 8, md: 10 } }}>
         <Container maxWidth="lg">
           <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <Chip
-                label="Community Operations Suite"
-                sx={{
-                  bgcolor: alpha(theme.palette.primary.main, 0.15),
-                  color: theme.palette.primary.light,
-                  fontWeight: 600,
-                  mb: 2,
-                }}
-              />
+            <Grid item xs={12} md={7}>
               <Typography
-                variant="h2"
-                sx={{ fontWeight: 800, lineHeight: 1.1, mb: 3, fontSize: { xs: '2.6rem', md: '3.6rem' } }}
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  fontWeight: 600,
+                  color: 'primary.main',
+                  mb: 1.5,
+                }}
+              >
+                Community operations suite
+              </Typography>
+              <Typography
+                variant="h1"
+                sx={{
+                  fontWeight: 700,
+                  lineHeight: 1.1,
+                  mb: 3,
+                  fontSize: { xs: '2.25rem', md: '3rem' },
+                  letterSpacing: '-0.02em',
+                }}
               >
                 Run volunteer programs with clarity and speed.
               </Typography>
-              <Typography variant="h6" sx={{ color: alpha(theme.palette.text.primary, 0.72), mb: 4, lineHeight: 1.7 }}>
-                A professional platform built for community organizations to plan events, recruit volunteers,
-                and measure outcomes without manual overhead.
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 560 }}>
+                A platform built for community organizations to plan events, recruit volunteers,
+                and measure outcomes — without the manual overhead.
               </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
                 <Button
                   variant="contained"
                   size="large"
                   endIcon={<ArrowForward />}
                   onClick={() => navigate(primaryCta.path)}
-                  sx={{
-                    bgcolor: theme.palette.primary.main,
-                    color: theme.palette.primary.contrastText,
-                    fontWeight: 700,
-                    px: 4,
-                    py: 1.5,
-                    '&:hover': { bgcolor: theme.palette.primary.dark },
-                  }}
                 >
                   {primaryCta.label}
                 </Button>
@@ -200,117 +149,107 @@ const LandingPage: React.FC = () => {
                   variant="outlined"
                   size="large"
                   onClick={() => navigate(secondaryCta.path)}
-                  sx={{
-                    borderColor: alpha(theme.palette.text.primary, 0.35),
-                    color: theme.palette.text.primary,
-                    px: 4,
-                    py: 1.5,
-                    fontWeight: 600,
-                    '&:hover': { borderColor: alpha(theme.palette.text.primary, 0.65), bgcolor: 'transparent' },
-                  }}
                 >
                   {secondaryCta.label}
                 </Button>
               </Stack>
-              <Stack direction="row" spacing={2} sx={{ mt: 4, flexWrap: 'wrap' }}>
-                <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.6) }}>
-                  Trusted by local councils and NGOs
-                </Typography>
-                <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.6) }}>
-                  99.9% uptime commitment
-                </Typography>
-              </Stack>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 4, display: 'block' }}>
+                Trusted by local councils and NGOs · 99.9% uptime commitment
+              </Typography>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <Box
-                sx={{
-                  bgcolor: alpha(theme.palette.background.paper, 0.5),
-                  border: `1px solid ${alpha(theme.palette.text.primary, 0.08)}`,
-                  borderRadius: 3,
-                  p: 3,
-                }}
-              >
-                <Grid container spacing={2}>
-                  {[
-                    { label: 'Active Volunteers', value: '12,480' },
-                    { label: 'Events This Month', value: '142' },
-                    { label: 'Completion Rate', value: '94%' },
-                    { label: 'Avg. Satisfaction', value: '4.7/5' },
-                  ].map((stat, index) => (
-                    <Grid item xs={6} key={index}>
-                      <Card
-                        sx={{
-                          bgcolor: alpha(theme.palette.background.paper, 0.9),
-                          border: `1px solid ${alpha(theme.palette.text.primary, 0.08)}`,
-                          boxShadow: 'none',
-                        }}
-                      >
-                        <CardContent>
-                          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                            {stat.value}
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.6) }}>
-                            {stat.label}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-                <Card
+
+            <Grid item xs={12} md={5}>
+              <Card sx={{ overflow: 'hidden' }}>
+                <Box
                   sx={{
-                    mt: 2,
-                    bgcolor: alpha(theme.palette.primary.main, 0.12),
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.4)}`,
-                    boxShadow: 'none',
+                    px: 2.5,
+                    py: 1.5,
+                    bgcolor: alpha(theme.palette.primary.main, 0.06),
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
                   }}
                 >
-                  <CardContent>
-                    <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
-                      Live coordinator view
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.65) }}>
-                      Track registrations, volunteer roles, and event readiness in one dashboard.
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Box>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.dark' }}>
+                    Live coordinator view
+                  </Typography>
+                </Box>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Grid container spacing={2}>
+                    {stats.map((stat) => (
+                      <Grid item xs={6} key={stat.label}>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            display: 'block',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {stat.label}
+                        </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 700, mt: 0.25 }}>
+                          {stat.value}
+                        </Typography>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </CardContent>
+              </Card>
             </Grid>
           </Grid>
         </Container>
       </Box>
 
       {/* Features */}
-      <Box sx={{ bgcolor: theme.palette.background.paper, py: 10 }}>
+      <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider', borderBottom: '1px solid' }}>
         <Container maxWidth="lg">
-          <Box sx={{ mb: 6, textAlign: 'center' }}>
-            <Typography variant="overline" sx={{ color: theme.palette.primary.light, fontWeight: 600, letterSpacing: 1.5 }}>
-              Platform Capabilities
+          <Box sx={{ mb: 5, maxWidth: 640 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                display: 'block',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                fontWeight: 600,
+                color: 'primary.main',
+                mb: 1,
+              }}
+            >
+              Platform capabilities
             </Typography>
-            <Typography variant="h3" sx={{ fontWeight: 800, mt: 2 }}>
+            <Typography variant="h2" sx={{ fontWeight: 700, mb: 1 }}>
               Built for volunteer operations
             </Typography>
-            <Typography variant="body1" sx={{ color: alpha(theme.palette.text.primary, 0.7), mt: 2 }}>
+            <Typography variant="body1" color="text.secondary">
               Everything you need to publish events, coordinate teams, and report outcomes.
             </Typography>
           </Box>
-          <Grid container spacing={3}>
-            {features.map((feature, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <Card
-                  sx={{
-                    height: '100%',
-                    bgcolor: alpha(theme.palette.background.paper, 0.9),
-                    border: `1px solid ${alpha(theme.palette.text.primary, 0.08)}`,
-                    boxShadow: 'none',
-                  }}
-                >
-                  <CardContent>
-                    <Box sx={{ color: theme.palette.primary.light, mb: 2 }}>{feature.icon}</Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+          <Grid container spacing={2}>
+            {features.map((feature) => (
+              <Grid item xs={12} sm={6} md={3} key={feature.title}>
+                <Card sx={{ height: '100%' }}>
+                  <CardContent sx={{ p: 2.5 }}>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 1,
+                        bgcolor: alpha(theme.palette.primary.main, 0.1),
+                        color: 'primary.main',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mb: 1.5,
+                      }}
+                    >
+                      {feature.icon}
+                    </Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
                       {feature.title}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.7) }}>
+                    <Typography variant="body2" color="text.secondary">
                       {feature.description}
                     </Typography>
                   </CardContent>
@@ -322,35 +261,62 @@ const LandingPage: React.FC = () => {
       </Box>
 
       {/* Steps */}
-      <Box sx={{ bgcolor: theme.palette.background.default, py: 10 }}>
+      <Box sx={{ py: { xs: 6, md: 8 } }}>
         <Container maxWidth="lg">
-          <Grid container spacing={4} alignItems="center">
+          <Grid container spacing={6} alignItems="flex-start">
             <Grid item xs={12} md={4}>
-              <Typography variant="h3" sx={{ fontWeight: 800, mb: 2 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  fontWeight: 600,
+                  color: 'primary.main',
+                  mb: 1,
+                }}
+              >
+                Workflow
+              </Typography>
+              <Typography variant="h2" sx={{ fontWeight: 700, mb: 1 }}>
                 A clean, repeatable flow
               </Typography>
-              <Typography variant="body1" sx={{ color: alpha(theme.palette.text.primary, 0.7) }}>
-                Every event follows the same professional lifecycle, so teams stay aligned.
+              <Typography variant="body1" color="text.secondary">
+                Every event follows the same lifecycle, so teams stay aligned across roles.
               </Typography>
             </Grid>
             <Grid item xs={12} md={8}>
               <Stack spacing={2}>
                 {steps.map((step, index) => (
-                  <Card
-                    key={index}
-                    sx={{
-                      bgcolor: alpha(theme.palette.background.paper, 0.9),
-                      border: `1px solid ${alpha(theme.palette.text.primary, 0.08)}`,
-                      boxShadow: 'none',
-                    }}
-                  >
-                    <CardContent sx={{ display: 'flex', gap: 2 }}>
-                      <Box sx={{ color: theme.palette.primary.light }}>{step.icon}</Box>
+                  <Card key={step.title}>
+                    <CardContent sx={{ p: 2.5, display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                      <Box
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 1,
+                          bgcolor: alpha(theme.palette.primary.main, 0.1),
+                          color: 'primary.main',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {step.icon}
+                      </Box>
                       <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}
+                        >
+                          Step {index + 1}
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                           {step.title}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.7) }}>
+                        <Typography variant="body2" color="text.secondary">
                           {step.description}
                         </Typography>
                       </Box>
@@ -364,13 +330,13 @@ const LandingPage: React.FC = () => {
       </Box>
 
       {/* CTA */}
-      <Box sx={{ bgcolor: alpha(theme.palette.primary.main, 0.08), py: 8 }}>
+      <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: 'primary.dark', color: 'primary.contrastText' }}>
         <Container maxWidth="md">
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h3" sx={{ fontWeight: 800, mb: 2 }}>
+          <Stack spacing={2} alignItems="center" sx={{ textAlign: 'center' }}>
+            <Typography variant="h2" sx={{ fontWeight: 700 }}>
               Ready to run better volunteer programs?
             </Typography>
-            <Typography variant="body1" sx={{ color: alpha(theme.palette.text.primary, 0.7), mb: 4 }}>
+            <Typography variant="body1" sx={{ opacity: 0.85, maxWidth: 540 }}>
               Replace spreadsheets with a system built for community impact.
             </Typography>
             <Button
@@ -378,79 +344,82 @@ const LandingPage: React.FC = () => {
               size="large"
               onClick={() => navigate(primaryCta.path)}
               sx={{
-                bgcolor: theme.palette.primary.main,
-                color: theme.palette.primary.contrastText,
-                fontWeight: 700,
-                px: 6,
-                py: 1.5,
+                bgcolor: 'background.paper',
+                color: 'primary.dark',
+                '&:hover': { bgcolor: alpha('#ffffff', 0.9) },
               }}
             >
               {primaryCta.label}
             </Button>
-          </Box>
+          </Stack>
         </Container>
       </Box>
 
       {/* Footer */}
-      <Box sx={{ bgcolor: theme.palette.background.paper, color: alpha(theme.palette.text.primary, 0.6), py: 6 }}>
+      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider', py: 5 }}>
         <Container maxWidth="lg">
           <Grid container spacing={4}>
             <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.text.primary, mb: 2 }}>
-                Volunteer Management
-              </Typography>
-              <Typography variant="body2" sx={{ lineHeight: 1.8 }}>
-                A professional platform for organizing volunteers and measuring outcomes.
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 0.75,
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <BrandIcon sx={{ fontSize: 14 }} />
+                </Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  Volunteer Platform
+                </Typography>
+              </Stack>
+              <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 320 }}>
+                A platform for organizing volunteers and measuring outcomes.
               </Typography>
             </Grid>
             <Grid item xs={12} md={8}>
-              <Grid container spacing={4}>
-                <Grid item xs={6} sm={3}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
-                    Product
-                  </Typography>
-                  <Stack spacing={1}>
-                    <Typography variant="body2">Features</Typography>
-                    <Typography variant="body2">Security</Typography>
-                    <Typography variant="body2">Support</Typography>
-                  </Stack>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
-                    Company
-                  </Typography>
-                  <Stack spacing={1}>
-                    <Typography variant="body2">About</Typography>
-                    <Typography variant="body2">Careers</Typography>
-                    <Typography variant="body2">Contact</Typography>
-                  </Stack>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
-                    Resources
-                  </Typography>
-                  <Stack spacing={1}>
-                    <Typography variant="body2">Documentation</Typography>
-                    <Typography variant="body2">Community</Typography>
-                    <Typography variant="body2">API</Typography>
-                  </Stack>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
-                    Legal
-                  </Typography>
-                  <Stack spacing={1}>
-                    <Typography variant="body2">Privacy</Typography>
-                    <Typography variant="body2">Terms</Typography>
-                    <Typography variant="body2">Compliance</Typography>
-                  </Stack>
-                </Grid>
+              <Grid container spacing={3}>
+                {[
+                  { heading: 'Product', items: ['Features', 'Security', 'Support'] },
+                  { heading: 'Company', items: ['About', 'Careers', 'Contact'] },
+                  { heading: 'Resources', items: ['Documentation', 'Community', 'API'] },
+                  { heading: 'Legal', items: ['Privacy', 'Terms', 'Compliance'] },
+                ].map((col) => (
+                  <Grid item xs={6} sm={3} key={col.heading}>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{
+                        display: 'block',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.06em',
+                        fontWeight: 600,
+                        mb: 1,
+                      }}
+                    >
+                      {col.heading}
+                    </Typography>
+                    <Stack spacing={0.5}>
+                      {col.items.map((item) => (
+                        <Typography key={item} variant="body2" color="text.secondary">
+                          {item}
+                        </Typography>
+                      ))}
+                    </Stack>
+                  </Grid>
+                ))}
               </Grid>
             </Grid>
           </Grid>
-          <Divider sx={{ my: 4, borderColor: alpha(theme.palette.text.primary, 0.12) }} />
-          <Typography variant="body2" sx={{ textAlign: 'center' }}>
-            (c) 2026 Volunteer Management Platform. All rights reserved.
+          <Divider sx={{ my: 3 }} />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center' }}>
+            © {new Date().getFullYear()} Volunteer Platform. All rights reserved.
           </Typography>
         </Container>
       </Box>

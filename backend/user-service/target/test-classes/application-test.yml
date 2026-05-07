@@ -41,3 +41,5 @@ app:
     cookie:
       secure: false
       same-site: Lax
+  demo:
+    seed-enabled: false

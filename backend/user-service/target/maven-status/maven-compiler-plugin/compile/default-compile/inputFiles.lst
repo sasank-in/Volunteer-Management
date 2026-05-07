@@ -11,6 +11,7 @@ C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\voluntee
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\repository\RefreshTokenRepository.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\repository\UserAccountRepository.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\service\AuthTokenService.java
+C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\service\DemoAccountSeeder.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\service\JwtTokenService.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\service\LoginAttemptService.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\service\PasswordResetMailer.java

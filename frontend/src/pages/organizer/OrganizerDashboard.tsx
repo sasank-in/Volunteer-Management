@@ -1,26 +1,35 @@
 import {
   Box,
+  Button,
   Container,
   Grid,
-  Paper,
-  Typography,
-  Card,
-  CardContent,
-  Button,
+  LinearProgress,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
-  CircularProgress,
+  Typography,
 } from '@mui/material';
-import { Event, People, Star, TrendingUp, Add } from '@mui/icons-material';
+import {
+  Event as EventIcon,
+  People as PeopleIcon,
+  Star as StarIcon,
+  TrendingUp as TrendingUpIcon,
+  Add as AddIcon,
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiService from '@services/api';
 import { useQuery } from '@tanstack/react-query';
 import MainLayout from '@components/Layout';
+import PageHeader from '@components/PageHeader';
+import PageSkeleton from '@components/PageSkeleton';
+import SectionCard from '@components/SectionCard';
+import StatCard from '@components/StatCard';
+import StatusChip from '@components/StatusChip';
+import { calculateProgressPercentage, formatDate } from '@utils/helpers';
 
 const OrganizerDashboard = () => {
   const navigate = useNavigate();
@@ -35,117 +44,166 @@ const OrganizerDashboard = () => {
     queryFn: () => apiService.getMyOrganizedEvents(),
   });
 
-  const stats = [
-    { title: 'Total Events', value: events.length, icon: Event, color: '#3b82f6' },
-    { title: 'Total Volunteers', value: events.reduce((sum, e) => sum + e.registeredVolunteers, 0), icon: People, color: '#10b981' },
-    { title: 'Avg Rating', value: (events.reduce((sum, e) => sum + (e.averageRating || 0), 0) / Math.max(events.length, 1)).toFixed(1), icon: Star, color: '#f59e0b' },
-    { title: 'Open Events', value: events.filter(e => e.status === 'OPEN').length, icon: TrendingUp, color: '#8b5cf6' },
-  ];
+  const totalVolunteers = events.reduce((sum, e) => sum + e.registeredVolunteers, 0);
+  const openEvents = events.filter((e) => e.status === 'OPEN').length;
+  const ratedEvents = events.filter((e) => e.averageRating != null);
+  const avgRating =
+    ratedEvents.length > 0
+      ? (ratedEvents.reduce((sum, e) => sum + (e.averageRating || 0), 0) / ratedEvents.length).toFixed(1)
+      : '—';
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <Container maxWidth="lg">
+          <PageSkeleton stats={4} sections={1} />
+        </Container>
+      </MainLayout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <MainLayout>
+        <Container maxWidth="lg">
+          <PageHeader eyebrow="Organizer" title="Dashboard" />
+          <SectionCard>
+            <Stack spacing={2} alignItems="flex-start">
+              <Typography variant="body2">We couldn&apos;t load your events.</Typography>
+              <Button variant="outlined" onClick={() => refetch()}>
+                Retry
+              </Button>
+            </Stack>
+          </SectionCard>
+        </Container>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
       <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Organizer Dashboard</Typography>
-            <Typography variant="body2" color="text.secondary">Manage your events</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button variant="outlined" onClick={() => navigate('/events')}>Go to Events</Button>
-            <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/events/create')}>
-              Create Event
-            </Button>
-          </Box>
-        </Box>
+        <PageHeader
+          eyebrow="Organizer"
+          title="Your events"
+          description="Manage events you organize, track volunteer signups, and review feedback."
+          actions={
+            <>
+              <Button variant="outlined" onClick={() => navigate('/events')}>
+                All events
+              </Button>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/events/create')}>
+                Create event
+              </Button>
+            </>
+          }
+        />
 
-        {(isLoading) && (
-          <Paper sx={{ p: 3, mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <CircularProgress size={20} />
-            <Typography variant="body2" color="text.secondary">
-              Loading your events...
-            </Typography>
-          </Paper>
-        )}
-
-        {isError && (
-          <Paper sx={{ p: 3, mb: 4 }}>
-            <Typography variant="body2" sx={{ mb: 1 }}>
-              We couldn’t load your events.
-            </Typography>
-            <Button variant="outlined" onClick={() => refetch()}>
-              Retry
-            </Button>
-          </Paper>
-        )}
-
-        {!isLoading && !isError && (
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <Grid item xs={12} sm={6} md={3} key={index}>
-                  <Card>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: stat.color, color: 'white', mr: 2 }}>
-                          <Icon />
-                        </Box>
-                        <Typography variant="body2" color="text.secondary">{stat.title}</Typography>
-                      </Box>
-                      <Typography variant="h3" sx={{ fontWeight: 700 }}>{stat.value}</Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
-            })}
+        <Grid container spacing={2} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Total events"
+              value={events.length}
+              icon={<EventIcon fontSize="small" />}
+              color="primary"
+            />
           </Grid>
-        )}
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Volunteers"
+              value={totalVolunteers}
+              icon={<PeopleIcon fontSize="small" />}
+              color="info"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Open events"
+              value={openEvents}
+              icon={<TrendingUpIcon fontSize="small" />}
+              color="success"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Avg rating"
+              value={avgRating}
+              icon={<StarIcon fontSize="small" />}
+              color="warning"
+            />
+          </Grid>
+        </Grid>
 
-        <Paper>
-          <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Your Events</Typography>
-          </Box>
-          {events.length === 0 && !isLoading && !isError ? (
+        <SectionCard
+          title="Your events"
+          description="Click any row to open the event detail."
+          action={
+            <Button size="small" variant="text" onClick={() => navigate('/events/create')}>
+              + New
+            </Button>
+          }
+          noPadding
+        >
+          {events.length === 0 ? (
             <Box sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="body1" sx={{ mb: 1 }}>
+              <Typography variant="body1" sx={{ mb: 0.5 }}>
                 No events yet
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Create your first event to start recruiting volunteers.
               </Typography>
-              <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/events/create')}>
-                Create Event
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => navigate('/events/create')}
+              >
+                Create event
               </Button>
             </Box>
           ) : (
             <TableContainer>
-              <Table>
+              <Table size="small" sx={{ minWidth: 640 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Title</TableCell>
                     <TableCell>Date</TableCell>
                     <TableCell>Location</TableCell>
-                    <TableCell>Volunteers</TableCell>
+                    <TableCell sx={{ minWidth: 140 }}>Volunteers</TableCell>
                     <TableCell>Status</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {events.map(e => (
-                    <TableRow key={e.id} hover onClick={() => navigate(`/events/${e.id}`)} sx={{ cursor: 'pointer' }}>
-                      <TableCell>{e.title}</TableCell>
-                      <TableCell>{new Date(e.eventDate).toLocaleDateString()}</TableCell>
-                      <TableCell>{e.location}</TableCell>
-                      <TableCell>{e.registeredVolunteers}/{e.requiredVolunteers}</TableCell>
-                      <TableCell>
-                        <Chip label={e.status} size="small" color={e.status === 'OPEN' ? 'success' : 'default'} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {events.map((e) => {
+                    const pct = calculateProgressPercentage(e.registeredVolunteers, e.requiredVolunteers);
+                    return (
+                      <TableRow
+                        key={e.id}
+                        hover
+                        onClick={() => navigate(`/events/${e.id}`)}
+                        sx={{ cursor: 'pointer' }}
+                      >
+                        <TableCell>{e.title}</TableCell>
+                        <TableCell>{formatDate(e.eventDate)}</TableCell>
+                        <TableCell>{e.location}</TableCell>
+                        <TableCell>
+                          <Stack spacing={0.5} sx={{ minWidth: 120 }}>
+                            <Typography variant="caption" color="text.secondary">
+                              {e.registeredVolunteers}/{e.requiredVolunteers}
+                            </Typography>
+                            <LinearProgress variant="determinate" value={pct} />
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <StatusChip kind="event" status={e.status} />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
           )}
-        </Paper>
+        </SectionCard>
       </Container>
     </MainLayout>
   );

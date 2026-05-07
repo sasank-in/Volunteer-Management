@@ -54,6 +54,9 @@ app:
       # In production set true; for local HTTP dev set false via env.
       secure: ${AUTH_COOKIE_SECURE:false}
       same-site: ${AUTH_COOKIE_SAME_SITE:Lax}
+  demo:
+    # Seeds three demo accounts at startup. Always disable in production.
+    seed-enabled: ${DEMO_SEED_ENABLED:true}
   sync:
     enabled: ${USER_SYNC_ENABLED:true}
     event-service-url: ${USER_SYNC_EVENT_URL:http://localhost:8082}

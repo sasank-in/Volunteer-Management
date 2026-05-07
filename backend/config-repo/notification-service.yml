@@ -97,7 +97,7 @@ management:
         liveness:
           include: livenessState
         readiness:
-          include: readinessState,db,mail
+          include: readinessState,db
   health:
     livenessstate:
       enabled: true

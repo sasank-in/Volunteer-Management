@@ -1,38 +1,39 @@
 import { useState } from 'react';
 import {
   Box,
-  Container,
-  Grid,
-  Paper,
-  Typography,
-  Card,
-  CardContent,
   Button,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  MenuItem,
+  Paper,
+  Select,
+  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
   TablePagination,
-  Chip,
-  Tab,
+  TableRow,
   Tabs,
-  Select,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  CircularProgress,
+  Typography,
 } from '@mui/material';
 import { People, Event, CheckCircle, TrendingUp } from '@mui/icons-material';
 import apiService from '@services/api';
 import type { UserAccount, Event as EventType } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '@components/Layout';
+import PageHeader from '@components/PageHeader';
+import PageSkeleton from '@components/PageSkeleton';
+import StatCard from '@components/StatCard';
+import StatusChip from '@components/StatusChip';
 import { useAuth } from '@hooks/useAuth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { formatDate } from '@utils/helpers';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -111,11 +112,12 @@ const AdminDashboard = () => {
     });
   };
 
-  const stats = [
-    { title: 'Total Users', value: users.length, icon: People, color: '#3b82f6' },
-    { title: 'Total Events', value: events.length, icon: Event, color: '#10b981' },
-    { title: 'Organizers', value: users.filter(u => u.role === 'ORGANIZER').length, icon: CheckCircle, color: '#f59e0b' },
-    { title: 'Volunteers', value: users.filter(u => u.role === 'VOLUNTEER').length, icon: TrendingUp, color: '#8b5cf6' },
+  type StatColor = 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
+  const stats: Array<{ title: string; value: number; icon: any; color: StatColor }> = [
+    { title: 'Total users', value: users.length, icon: People, color: 'primary' },
+    { title: 'Total events', value: events.length, icon: Event, color: 'success' },
+    { title: 'Organizers', value: users.filter(u => u.role === 'ORGANIZER').length, icon: CheckCircle, color: 'info' },
+    { title: 'Volunteers', value: users.filter(u => u.role === 'VOLUNTEER').length, icon: TrendingUp, color: 'warning' },
   ];
 
   const usersLoading = usersQuery.isLoading;
@@ -123,35 +125,48 @@ const AdminDashboard = () => {
   const usersError = usersQuery.isError;
   const eventsError = eventsQuery.isError;
 
+  if ((usersLoading || eventsLoading) && !(usersError || eventsError)) {
+    return (
+      <MainLayout>
+        <Container maxWidth="lg">
+          <PageSkeleton stats={4} sections={1} />
+        </Container>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
       <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Admin Dashboard</Typography>
-            <Typography variant="body2" color="text.secondary">Manage users and events</Typography>
-          </Box>
-          <Button variant="outlined" onClick={() => navigate('/events')}>Go to Events</Button>
-        </Box>
+        <PageHeader
+          eyebrow="Admin"
+          title="Workspace administration"
+          description="Manage users, monitor events, and oversee platform activity."
+          actions={
+            <Button variant="outlined" onClick={() => navigate('/events')}>
+              All events
+            </Button>
+          }
+        />
 
         {(usersError || eventsError) && (
-          <Paper sx={{ p: 3, mb: 4 }}>
+          <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
             {usersError && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body1" sx={{ mb: 1 }}>
+              <Box sx={{ mb: eventsError ? 2 : 0 }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
                   Failed to load users.
                 </Typography>
-                <Button variant="outlined" onClick={() => usersQuery.refetch()}>
+                <Button size="small" variant="outlined" onClick={() => usersQuery.refetch()}>
                   Retry users
                 </Button>
               </Box>
             )}
             {eventsError && (
               <Box>
-                <Typography variant="body1" sx={{ mb: 1 }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
                   Failed to load events.
                 </Typography>
-                <Button variant="outlined" onClick={() => eventsQuery.refetch()}>
+                <Button size="small" variant="outlined" onClick={() => eventsQuery.refetch()}>
                   Retry events
                 </Button>
               </Box>
@@ -159,31 +174,17 @@ const AdminDashboard = () => {
           </Paper>
         )}
 
-        {(usersLoading || eventsLoading) && !(usersError || eventsError) && (
-          <Paper sx={{ p: 3, mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <CircularProgress size={20} />
-            <Typography variant="body2" color="text.secondary">
-              Loading admin data...
-            </Typography>
-          </Paper>
-        )}
-
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={2} sx={{ mb: 4 }}>
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
               <Grid item xs={12} sm={6} md={3} key={index}>
-                <Card>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: stat.color, color: 'white', mr: 2 }}>
-                        <Icon />
-                      </Box>
-                      <Typography variant="body2" color="text.secondary">{stat.title}</Typography>
-                    </Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700 }}>{stat.value}</Typography>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title={stat.title}
+                  value={stat.value}
+                  icon={<Icon fontSize="small" />}
+                  color={stat.color}
+                />
               </Grid>
             );
           })}
@@ -207,7 +208,7 @@ const AdminDashboard = () => {
             </Box>
           ) : (
             <TableContainer>
-              <Table>
+              <Table size="small" sx={{ minWidth: 720 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Username</TableCell>
@@ -238,11 +239,7 @@ const AdminDashboard = () => {
                         </Select>
                       </TableCell>
                       <TableCell>
-                        <Chip
-                          label={isActiveUser(u) ? 'ACTIVE' : 'INACTIVE'}
-                          size="small"
-                          color={isActiveUser(u) ? 'success' : 'default'}
-                        />
+                        <StatusChip kind="user" status={isActiveUser(u) ? 'ACTIVE' : 'INACTIVE'} />
                       </TableCell>
                       <TableCell align="right">
                         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
@@ -300,7 +297,7 @@ const AdminDashboard = () => {
             </Box>
           ) : (
             <TableContainer>
-              <Table>
+              <Table size="small" sx={{ minWidth: 720 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Title</TableCell>
@@ -316,8 +313,8 @@ const AdminDashboard = () => {
                     <TableRow key={e.id}>
                       <TableCell>{e.title}</TableCell>
                       <TableCell>{e.organizerName}</TableCell>
-                      <TableCell>{new Date(e.eventDate).toLocaleDateString()}</TableCell>
-                      <TableCell><Chip label={e.status} size="small" color={e.status === 'OPEN' ? 'success' : 'default'} /></TableCell>
+                      <TableCell>{formatDate(e.eventDate)}</TableCell>
+                      <TableCell><StatusChip kind="event" status={e.status} /></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

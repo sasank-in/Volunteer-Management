@@ -1,90 +1,122 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Box,
-  Container,
-  Card,
-  CardContent,
-  TextField,
-  Button,
-  Typography,
   Alert,
-  Grid,
   Avatar,
-  Divider,
+  Box,
+  Button,
   CircularProgress,
+  Container,
+  Grid,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material';
-import { Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import {
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+} from '@mui/icons-material';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
 import apiService from '@services/api';
 import MainLayout from '@components/Layout';
+import PageHeader from '@components/PageHeader';
+import PageSkeleton from '@components/PageSkeleton';
+import SectionCard from '@components/SectionCard';
+import { useToast } from '@components/Toast';
+import { formatDate } from '@utils/helpers';
 import type { UserAccount } from '@/types';
-import { useNavigate } from 'react-router-dom';
+
+const ROLE_LABEL: Record<string, string> = {
+  ORGANIZER: 'Event Organizer',
+  ADMIN: 'Administrator',
+  VOLUNTEER: 'Volunteer',
+};
+
+const avatarColor = (role?: string): string => {
+  if (role === 'ORGANIZER') return '#0F766E';
+  if (role === 'ADMIN') return '#B91C1C';
+  return '#0F4C81';
+};
 
 const ProfilePage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const showToast = useToast((s) => s.showToast);
   const [isEditing, setIsEditing] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+
+  const [formData, setFormData] = useState({
+    username: user?.username ?? '',
+    email: user?.email ?? '',
+    phoneNumber: user?.phoneNumber ?? '',
+  });
+
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
-  const [formData, setFormData] = useState({
-    username: user?.username || '',
-    email: user?.email || '',
-    phoneNumber: user?.phoneNumber || '',
-  });
-
-  // Fetch profile
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading } = useQuery({
     queryKey: ['profile'],
     queryFn: () => apiService.getProfile(),
   });
 
-  // Update profile mutation
+  useEffect(() => {
+    if (profile && !isEditing) {
+      setFormData({
+        username: profile.username,
+        email: profile.email,
+        phoneNumber: profile.phoneNumber ?? '',
+      });
+    }
+  }, [profile, isEditing]);
+
   const updateMutation = useMutation({
     mutationFn: (data: Partial<UserAccount>) => apiService.updateProfile(data),
     onSuccess: () => {
-      setSuccessMessage('Profile updated successfully!');
       setIsEditing(false);
-      setTimeout(() => setSuccessMessage(''), 3000);
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      showToast('Profile updated.', 'success');
+    },
+    onError: (err: any) => {
+      showToast(err?.response?.data?.error ?? 'Could not update profile.', 'error');
     },
   });
 
   const changePasswordMutation = useMutation({
     mutationFn: () => apiService.changePassword(oldPassword, newPassword),
     onSuccess: () => {
-      setPasswordSuccess('Password updated successfully!');
       setPasswordError('');
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setTimeout(() => setPasswordSuccess(''), 3000);
+      showToast('Password updated.', 'success');
     },
     onError: (err: any) => {
-      setPasswordError(err.response?.data?.error || 'Failed to update password. Please try again.');
+      setPasswordError(err?.response?.data?.error ?? 'Could not update password.');
     },
   });
 
   const handleChangePassword = () => {
     setPasswordError('');
-
     if (!oldPassword || !newPassword || !confirmPassword) {
       setPasswordError('Please fill in all password fields.');
       return;
     }
-    if (newPassword.length < 8) {
-      setPasswordError('New password must be at least 8 characters long.');
+    if (newPassword.length < 10) {
+      setPasswordError('New password must be at least 10 characters long.');
+      return;
+    }
+    if (!/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword)) {
+      setPasswordError('New password must include both letters and digits.');
       return;
     }
     if (newPassword !== confirmPassword) {
       setPasswordError('New passwords do not match.');
       return;
     }
-
     changePasswordMutation.mutate();
   };
 
@@ -93,95 +125,96 @@ const ProfilePage: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = () => {
-    updateMutation.mutate(formData);
-  };
-
   const handleCancel = () => {
-    setFormData({
-      username: profile?.username || '',
-      email: profile?.email || '',
-      phoneNumber: profile?.phoneNumber || '',
-    });
+    if (profile) {
+      setFormData({
+        username: profile.username,
+        email: profile.email,
+        phoneNumber: profile.phoneNumber ?? '',
+      });
+    }
     setIsEditing(false);
   };
 
-  const getAvatarColor = (role?: string): string => {
-    if (role === 'ORGANIZER') return '#8b5cf6';
-    if (role === 'ADMIN') return '#ef4444';
-    return '#3b82f6';
-  };
-
-  const getRoleLabel = (role?: string): string => {
-    switch (role) {
-      case 'ORGANIZER':
-        return 'Event Organizer';
-      case 'ADMIN':
-        return 'Administrator';
-      case 'VOLUNTEER':
-        return 'Volunteer';
-      default:
-        return role || '';
-    }
-  };
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <Container maxWidth="md">
+          <PageSkeleton sections={3} />
+        </Container>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
       <Container maxWidth="md">
-        {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-            My Profile
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Manage your personal information
-          </Typography>
-        </Box>
+        <PageHeader title="Your profile" description="Manage your account, security, and preferences." />
 
-        {successMessage && (
-          <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccessMessage('')}>
-            {successMessage}
-          </Alert>
-        )}
-
-        {/* Profile Card */}
-        <Card sx={{ mb: 3 }}>
-          <CardContent sx={{ p: 4 }}>
-            {/* Avatar Section */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4 }}>
+        <Stack spacing={3}>
+          <SectionCard
+            title="Account"
+            description="The details other users see when you organize or attend events."
+            action={
+              isEditing ? (
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    size="small"
+                    startIcon={<CancelIcon />}
+                    onClick={handleCancel}
+                    disabled={updateMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    startIcon={
+                      updateMutation.isPending ? (
+                        <CircularProgress size={14} color="inherit" />
+                      ) : (
+                        <SaveIcon />
+                      )
+                    }
+                    onClick={() => updateMutation.mutate(formData)}
+                    disabled={updateMutation.isPending}
+                  >
+                    Save
+                  </Button>
+                </Stack>
+              ) : (
+                <Button size="small" startIcon={<EditIcon />} onClick={() => setIsEditing(true)}>
+                  Edit
+                </Button>
+              )
+            }
+          >
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems="flex-start" sx={{ mb: 3 }}>
               <Avatar
                 sx={{
-                  width: 100,
-                  height: 100,
-                  bgcolor: getAvatarColor(profile?.role),
-                  fontSize: '2rem',
+                  width: 64,
+                  height: 64,
+                  bgcolor: avatarColor(profile?.role),
+                  fontSize: '1.25rem',
                   fontWeight: 700,
                 }}
               >
-                {(profile?.username || 'U').substring(0, 2).toUpperCase()}
+                {(profile?.username ?? 'U').substring(0, 2).toUpperCase()}
               </Avatar>
-              <Box>
-                <Typography variant="h5" sx={{ fontWeight: 700 }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                   {profile?.username}
                 </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: 600,
-                    color: 'primary.main',
-                    mt: 1,
-                  }}
-                >
-                  {getRoleLabel(profile?.role)}
+                <Typography variant="body2" color="text.secondary">
+                  {ROLE_LABEL[profile?.role ?? ''] ?? profile?.role}
+                </Typography>
+                <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: 'block' }}>
+                  Joined {profile?.createdAt ? formatDate(profile.createdAt) : 'recently'}
                 </Typography>
               </Box>
-            </Box>
+            </Stack>
 
-            <Divider sx={{ my: 3 }} />
-
-            {/* Form Section */}
-            <Grid container spacing={3}>
-              {/* Username */}
+            <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -192,8 +225,6 @@ const ProfilePage: React.FC = () => {
                   disabled={!isEditing}
                 />
               </Grid>
-
-              {/* Email */}
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -205,155 +236,23 @@ const ProfilePage: React.FC = () => {
                   disabled={!isEditing}
                 />
               </Grid>
-
-              {/* Phone */}
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Phone Number"
+                  label="Phone number"
                   name="phoneNumber"
                   value={formData.phoneNumber}
                   onChange={handleChange}
                   disabled={!isEditing}
                 />
               </Grid>
-
-              {/* Role Badge */}
-              <Grid item xs={12}>
-                <Box>
-                  <Typography variant="caption" sx={{ fontWeight: 500, display: 'block', mb: 1 }}>
-                    Account Type
-                  </Typography>
-                  <Box
-                    sx={{
-                      px: 2,
-                      py: 1,
-                      borderRadius: 1,
-                      bgcolor: 'action.hover',
-                      display: 'inline-block',
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {getRoleLabel(profile?.role)}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-
-              {/* Timestamps */}
-              <Grid item xs={12}>
-                <Box
-                  sx={{
-                    p: 2,
-                    borderRadius: 1,
-                    bgcolor: 'action.hover',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      Joined
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {profile?.createdAt
-                        ? new Date(profile.createdAt).toLocaleDateString()
-                        : 'N/A'}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      Last Updated
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {profile?.updatedAt
-                        ? new Date(profile.updatedAt).toLocaleDateString()
-                        : 'N/A'}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-
-              {/* Action Buttons */}
-              <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', pt: 2 }}>
-                {isEditing ? (
-                  <>
-                    <Button
-                      variant="outlined"
-                      startIcon={<CancelIcon />}
-                      onClick={handleCancel}
-                      disabled={updateMutation.isPending}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="contained"
-                      startIcon={
-                        updateMutation.isPending ? (
-                          <CircularProgress size={20} color="inherit" />
-                        ) : (
-                          <SaveIcon />
-                        )
-                      }
-                      onClick={handleSubmit}
-                      disabled={updateMutation.isPending}
-                    >
-                      {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    variant="contained"
-                    startIcon={<EditIcon />}
-                    onClick={() => setIsEditing(true)}
-                  >
-                    Edit Profile
-                  </Button>
-                )}
-              </Grid>
             </Grid>
-          </CardContent>
-        </Card>
+          </SectionCard>
 
-        {/* Account Settings Card */}
-        <Card>
-          <CardContent sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-              Account Settings
-            </Typography>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                  Notification Settings
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Control how you receive notifications
-                </Typography>
-                <Box sx={{ mt: 2 }}>
-                  <Button variant="outlined" size="small" onClick={() => navigate('/notifications')}>
-                    Manage Notifications
-                  </Button>
-                </Box>
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-
-        <Card id="change-password">
-          <CardContent sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Change Password
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              For your security, choose a strong password.
-            </Typography>
-
-            {passwordSuccess && (
-              <Alert severity="success" sx={{ mb: 2 }} onClose={() => setPasswordSuccess('')}>
-                {passwordSuccess}
-              </Alert>
-            )}
+          <SectionCard
+            title="Security"
+            description="Use a password you don't reuse anywhere else."
+          >
             {passwordError && (
               <Alert severity="error" sx={{ mb: 2 }} onClose={() => setPasswordError('')}>
                 {passwordError}
@@ -364,43 +263,70 @@ const ProfilePage: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Current Password"
+                  label="Current password"
                   type="password"
                   value={oldPassword}
                   onChange={(e) => setOldPassword(e.target.value)}
+                  autoComplete="current-password"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="New Password"
+                  label="New password"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  helperText="At least 8 characters"
+                  helperText="At least 10 characters, with both letters and digits."
+                  autoComplete="new-password"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Confirm New Password"
+                  label="Confirm new password"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
                 />
               </Grid>
-              <Grid item xs={12} sm={6} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button
                   variant="contained"
                   onClick={handleChangePassword}
                   disabled={changePasswordMutation.isPending}
                 >
-                  {changePasswordMutation.isPending ? 'Saving...' : 'Update Password'}
+                  {changePasswordMutation.isPending ? 'Saving…' : 'Update password'}
                 </Button>
               </Grid>
             </Grid>
-          </CardContent>
-        </Card>
+          </SectionCard>
+
+          <SectionCard
+            title="Preferences"
+            description="Notification settings and other workspace controls."
+          >
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={2}
+              alignItems={{ xs: 'flex-start', sm: 'center' }}
+              justifyContent="space-between"
+            >
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  Notifications
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Review your notification feed and mark items as read.
+                </Typography>
+              </Box>
+              <Button variant="outlined" size="small" onClick={() => navigate('/notifications')}>
+                Manage notifications
+              </Button>
+            </Stack>
+          </SectionCard>
+        </Stack>
       </Container>
     </MainLayout>
   );
