@@ -31,6 +31,7 @@ import PageHeader from '@components/PageHeader';
 import PageSkeleton from '@components/PageSkeleton';
 import StatCard from '@components/StatCard';
 import StatusChip from '@components/StatusChip';
+import { useToast } from '@components/Toast';
 import { useAuth } from '@hooks/useAuth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDate, formatDateRelative, formatDateTime } from '@utils/helpers';
@@ -48,6 +49,7 @@ const AdminDashboard = () => {
   const [auditRowsPerPage, setAuditRowsPerPage] = useState(25);
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const showToast = useToast((s) => s.showToast);
 
   const usersQuery = useQuery({
     queryKey: ['admin', 'users'],
@@ -81,18 +83,39 @@ const AdminDashboard = () => {
   const updateUserRoleMutation = useMutation({
     mutationFn: ({ userId, role }: { userId: string; role: string }) =>
       apiService.updateUserRole(userId, role),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'audit-log'] });
+      showToast('User role updated.', 'success');
+    },
+    onError: (err: any) =>
+      showToast(err?.response?.data?.error ?? 'Could not update role.', 'error'),
   });
 
   const updateUserStatusMutation = useMutation({
     mutationFn: ({ userId, status }: { userId: string; status: 'ACTIVE' | 'INACTIVE' }) =>
       apiService.updateUserStatus(userId, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'audit-log'] });
+      showToast(
+        vars.status === 'ACTIVE' ? 'User activated.' : 'User deactivated.',
+        'success',
+      );
+    },
+    onError: (err: any) =>
+      showToast(err?.response?.data?.error ?? 'Could not update status.', 'error'),
   });
 
   const deleteUserMutation = useMutation({
     mutationFn: (userId: string) => apiService.deleteUser(userId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'audit-log'] });
+      showToast('User deleted.', 'success');
+    },
+    onError: (err: any) =>
+      showToast(err?.response?.data?.error ?? 'Could not delete user.', 'error'),
   });
 
   const handleRoleChange = (userId: string, role: string) => {

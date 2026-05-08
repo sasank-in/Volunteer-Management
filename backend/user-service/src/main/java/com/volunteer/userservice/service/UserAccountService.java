@@ -98,6 +98,10 @@ public class UserAccountService {
       account.setRole(Role.VOLUNTEER);
     }
 
+    if (request.getStatus() != null) {
+      account.setStatus(request.getStatus());
+    }
+
     UserAccount saved = repository.save(account);
     userSyncPublisher.publishUserUpdated(saved);
     return saved;

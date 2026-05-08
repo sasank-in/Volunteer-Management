@@ -1,6 +1,7 @@
 package com.volunteer.userservice.web.dto;
 
 import com.volunteer.userservice.domain.Role;
+import com.volunteer.userservice.domain.UserStatus;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -9,6 +10,7 @@ public class UserResponse {
   private String username;
   private String email;
   private Role role;
+  private UserStatus status;
   private String phoneNumber;
   private Instant createdAt;
   private Instant updatedAt;
@@ -50,5 +52,13 @@ public class UserResponse {
 
   public Instant getUpdatedAt() {
     return updatedAt;
+  }
+
+  public UserStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(UserStatus status) {
+    this.status = status;
   }
 }

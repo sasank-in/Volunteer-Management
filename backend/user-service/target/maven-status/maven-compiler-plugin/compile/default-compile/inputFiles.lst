@@ -8,6 +8,7 @@ C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\voluntee
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\domain\Role.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\domain\RoleAttributeConverter.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\domain\UserAccount.java
+C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\domain\UserStatus.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\repository\AuditLogRepository.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\repository\PasswordResetTokenRepository.java
 C:\java-pro\Volunteer-Management\backend\user-service\src\main\java\com\volunteer\userservice\repository\RefreshTokenRepository.java

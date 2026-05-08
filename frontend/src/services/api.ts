@@ -133,12 +133,14 @@ class ApiService {
   }
 
   async updateUserRole(userId: string, role: string): Promise<UserAccount> {
-    const response = await this.api.put<UserAccount>(`/users/${userId}/role`, { role });
+    // Backend exposes a single PUT /users/{id} that accepts a partial body —
+    // role and status are both updateable through this one endpoint.
+    const response = await this.api.put<UserAccount>(`/users/${userId}`, { role });
     return response.data;
   }
 
   async updateUserStatus(userId: string, status: 'ACTIVE' | 'INACTIVE'): Promise<UserAccount> {
-    const response = await this.api.put<UserAccount>(`/users/${userId}/status`, { status });
+    const response = await this.api.put<UserAccount>(`/users/${userId}`, { status });
     return response.data;
   }
 

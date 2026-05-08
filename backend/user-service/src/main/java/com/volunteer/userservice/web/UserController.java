@@ -50,14 +50,7 @@ public class UserController {
   public UserResponse profile(Principal principal) {
     UserAccount account = userAccountService.findByUsernameOrEmail(principal.getName())
         .orElseThrow(() -> new IllegalArgumentException("User not found."));
-    return new UserResponse(
-        account.getId(),
-        account.getUsername(),
-        account.getEmail(),
-        account.getRole(),
-        account.getPhoneNumber(),
-        account.getCreatedAt(),
-        account.getUpdatedAt());
+    return toResponse(account);
   }
 
   @GetMapping("/me")
@@ -69,17 +62,10 @@ public class UserController {
   public UserResponse updateMe(Principal principal, @Valid @RequestBody UpdateUserRequest request) {
     UserAccount current = userAccountService.findByUsernameOrEmail(principal.getName())
         .orElseThrow(() -> new IllegalArgumentException("User not found."));
-    // Prevent self-service privilege escalation.
+    // Prevent self-service privilege escalation / self-deactivation.
     request.setRole(null);
-    UserAccount account = userAccountService.updateUser(current.getId(), request);
-    return new UserResponse(
-        account.getId(),
-        account.getUsername(),
-        account.getEmail(),
-        account.getRole(),
-        account.getPhoneNumber(),
-        account.getCreatedAt(),
-        account.getUpdatedAt());
+    request.setStatus(null);
+    return toResponse(userAccountService.updateUser(current.getId(), request));
   }
 
   @GetMapping
@@ -88,16 +74,7 @@ public class UserController {
     List<UserAccount> accounts = role == null
         ? userAccountService.findAll()
         : userAccountService.findAllByRole(role);
-    return accounts.stream()
-        .map(account -> new UserResponse(
-            account.getId(),
-            account.getUsername(),
-            account.getEmail(),
-            account.getRole(),
-            account.getPhoneNumber(),
-            account.getCreatedAt(),
-            account.getUpdatedAt()))
-        .collect(Collectors.toList());
+    return accounts.stream().map(this::toResponse).collect(Collectors.toList());
   }
 
   @GetMapping("/{id}")
@@ -105,14 +82,7 @@ public class UserController {
   public UserResponse getById(@PathVariable("id") UUID id) {
     UserAccount account = userAccountService.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("User not found."));
-    return new UserResponse(
-        account.getId(),
-        account.getUsername(),
-        account.getEmail(),
-        account.getRole(),
-        account.getPhoneNumber(),
-        account.getCreatedAt(),
-        account.getUpdatedAt());
+    return toResponse(account);
   }
 
   @PutMapping("/{id}")
@@ -143,14 +113,7 @@ public class UserController {
           null);
     }
 
-    return new UserResponse(
-        account.getId(),
-        account.getUsername(),
-        account.getEmail(),
-        account.getRole(),
-        account.getPhoneNumber(),
-        account.getCreatedAt(),
-        account.getUpdatedAt());
+    return toResponse(account);
   }
 
   @DeleteMapping("/{id}")
@@ -167,5 +130,18 @@ public class UserController {
         AuditLogService.USER_DELETED,
         "USER", id,
         details);
+  }
+
+  private UserResponse toResponse(UserAccount account) {
+    UserResponse response = new UserResponse(
+        account.getId(),
+        account.getUsername(),
+        account.getEmail(),
+        account.getRole(),
+        account.getPhoneNumber(),
+        account.getCreatedAt(),
+        account.getUpdatedAt());
+    response.setStatus(account.getStatus());
+    return response;
   }
 }

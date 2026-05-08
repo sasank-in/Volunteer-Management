@@ -1,14 +1,16 @@
 package com.volunteer.userservice.domain;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.Convert;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -31,6 +33,10 @@ public class UserAccount {
   @Column(name = "role", nullable = false, length = 30)
   @Convert(converter = RoleAttributeConverter.class)
   private Role role;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false, length = 20)
+  private UserStatus status = UserStatus.ACTIVE;
 
   @Column(name = "phone_number", length = 30)
   private String phoneNumber;
@@ -97,6 +103,14 @@ public class UserAccount {
 
   public void setRole(Role role) {
     this.role = role;
+  }
+
+  public UserStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(UserStatus status) {
+    this.status = status;
   }
 
   public String getPhoneNumber() {

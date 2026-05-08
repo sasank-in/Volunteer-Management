@@ -91,6 +91,11 @@ public class AuthController {
       throw new IllegalArgumentException(
           "Account temporarily locked due to repeated failed logins. Try again later.");
     }
+    if (preAuth != null
+        && preAuth.getStatus() == com.volunteer.userservice.domain.UserStatus.INACTIVE) {
+      // Same generic message as bad credentials so we don't leak account state.
+      throw new IllegalArgumentException("Invalid credentials.");
+    }
 
     Authentication authentication;
     try {

@@ -3,6 +3,7 @@ package com.volunteer.userservice.web.dto;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.volunteer.userservice.domain.Role;
+import com.volunteer.userservice.domain.UserStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
@@ -20,6 +21,8 @@ public class UpdateUserRequest {
   private String phoneNumber;
 
   private Role role;
+
+  private UserStatus status;
 
   public String getUsername() {
     return username;
@@ -54,5 +57,13 @@ public class UpdateUserRequest {
 
   public void setRole(Role role) {
     this.role = role;
+  }
+
+  public UserStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(UserStatus status) {
+    this.status = status;
   }
 }

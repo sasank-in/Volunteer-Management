@@ -82,6 +82,8 @@ const NotificationsPage: React.FC = () => {
   const markReadMutation = useMutation({
     mutationFn: (id: string) => apiService.markNotificationRead(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onError: (err: any) =>
+      showToast(err?.response?.data?.error ?? 'Could not mark as read.', 'error'),
   });
 
   const markAllReadMutation = useMutation({

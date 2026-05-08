@@ -91,26 +91,6 @@ public class ParticipationController {
     return toResponse(updated);
   }
 
-  @PutMapping("/events/{eventId}/volunteers/{volunteerId}/attendance")
-  public Map<String, String> markAttendance(@PathVariable("eventId") UUID eventId,
-      @PathVariable("volunteerId") UUID volunteerId,
-      @RequestParam boolean attended,
-      Authentication authentication) {
-    requireOrganizerOrAdminForEvent(eventId, authentication);
-    participationService.markAttendance(eventId, volunteerId, attended);
-    return Map.of("message", "Attendance marked successfully");
-  }
-
-  @PutMapping("/events/{eventId}/volunteers/{volunteerId}/role")
-  public Map<String, String> updateRole(@PathVariable("eventId") UUID eventId,
-      @PathVariable("volunteerId") UUID volunteerId,
-      @RequestParam String role,
-      Authentication authentication) {
-    requireOrganizerOrAdminForEvent(eventId, authentication);
-    participationService.updateRole(eventId, volunteerId, role);
-    return Map.of("message", "Role updated successfully");
-  }
-
   private ParticipationResponse toResponse(Participation p) {
     return new ParticipationResponse(
         p.getId(),
